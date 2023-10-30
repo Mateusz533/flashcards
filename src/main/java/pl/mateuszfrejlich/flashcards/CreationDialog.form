@@ -49,7 +49,7 @@
           </grid>
         </children>
       </grid>
-      <grid id="e3588" binding="pnForm" layout-manager="GridLayoutManager" row-count="2" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="e3588" binding="pnForm" layout-manager="GridLayoutManager" row-count="3" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -80,7 +80,9 @@
                     <preferred-size width="150" height="25"/>
                   </grid>
                 </constraints>
-                <properties/>
+                <properties>
+                  <toolTipText value="Expected CSV file with patern:  &lt;reverse_card_text&gt;,&lt;front_card_text&gt;"/>
+                </properties>
               </component>
               <component id="ac161" class="javax.swing.JButton" binding="btnPath">
                 <constraints>
@@ -119,10 +121,20 @@
                     <preferred-size width="150" height="25"/>
                   </grid>
                 </constraints>
-                <properties/>
+                <properties>
+                  <toolTipText value="Forbidden characters: / \ : * ? &quot; &lt; &gt; |"/>
+                </properties>
               </component>
             </children>
           </grid>
+          <component id="8ffa8" class="javax.swing.JCheckBox" binding="cbEmpty">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Empty collection"/>
+            </properties>
+          </component>
         </children>
       </grid>
       <vspacer id="55ec7">

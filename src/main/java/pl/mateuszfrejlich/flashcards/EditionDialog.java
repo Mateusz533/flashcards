@@ -24,13 +24,15 @@ public class EditionDialog extends JDialog {
     private JPanel pnReverse;
     private JPanel pnControl;
     private JPanel pnButtons;
+    private Controller controller;
 
-    public EditionDialog() {
+    public EditionDialog(Controller controller) {
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
         setMinimumSize(new Dimension(400, 300));
         setTitle("Edition dialog");
+        this.controller = controller;
 
         buttonOK.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -58,23 +60,30 @@ public class EditionDialog extends JDialog {
                 onCancel();
             }
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        btnConfirm.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                final boolean updated = controller.cacheData(tfFront.getText(), tfReverse.getText());
+                // TODO: show message
+                if (updated) System.out.println("OK");
+            }
+        });
+        btnSwapSides.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // TODO: swap order in checkbox and text-fields
+            }
+        });
     }
 
     private void onOK() {
-        // add your code here
+        controller.putCachedData();
         dispose();
     }
 
     private void onCancel() {
-        // add your code here if necessary
+        // TODO: clear cache
         dispose();
-    }
-
-    public static void main(String[] args) {
-        EditionDialog dialog = new EditionDialog();
-        dialog.pack();
-        dialog.setVisible(true);
-        System.exit(0);
     }
 
     {

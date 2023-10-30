@@ -9,6 +9,8 @@ import javax.swing.text.StyleContext;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Locale;
 
 @Component
@@ -43,11 +45,7 @@ public class MainWindow extends JFrame {
     }
 
     public MainWindow() {
-        try {
-            setContentPane(mainPanel);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        setContentPane(mainPanel);
         setTitle("Flashcards");
         setSize(800, 600);
         setMinimumSize(new Dimension(800, 600));
@@ -71,15 +69,22 @@ public class MainWindow extends JFrame {
                 controller.deleteSchema();
             }
         });
+        pnFlashcard.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                // TODO: flip card or show next card
+            }
+        });
         setVisible(true);
     }
 
     private void openCreationDialog() {
-        new CreationDialog().setVisible(true);
+        new CreationDialog(controller).setVisible(true);
     }
 
     private void openEditionDialog() {
-        new EditionDialog().setVisible(true);
+        new EditionDialog(controller).setVisible(true);
     }
 
     {
