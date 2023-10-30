@@ -9,10 +9,11 @@ import java.awt.*;
 
 @SpringBootApplication
 public class FlashcardsApplication {
+    private static MainWindow window;
+
     public static void main(String[] args) {
         ConfigurableApplicationContext ctx = new SpringApplicationBuilder(FlashcardsApplication.class).headless(false).web(WebApplicationType.NONE).run(args);
-        EventQueue.invokeLater(() -> {
-            MainWindow window = ctx.getBean(MainWindow.class);
-        });
+        EventQueue.invokeLater(() -> window = ctx.getBean(MainWindow.class));
     }
+
 }

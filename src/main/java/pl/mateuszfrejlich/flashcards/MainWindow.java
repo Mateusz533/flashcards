@@ -7,36 +7,44 @@ import javax.swing.border.TitledBorder;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.text.StyleContext;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Locale;
 
 @Component
 public class MainWindow extends JFrame {
-    private JPanel mainPnl;
-    private JButton newButton;
-    private JButton editButton;
-    private JButton deleteButton;
-    private JPanel optionsPnl;
-    private JPanel viewPnl;
-    private JPanel leftPnl;
-    private JPanel rightPnl;
-    private JPanel flashcardPnl;
-    private JLabel wordLbl;
-    private JLabel section1Lbl;
-    private JLabel section2Lbl;
-    private JLabel section3Lbl;
-    private JLabel section4Lbl;
-    private JLabel section5Lbl;
-    private JComboBox collectionCmbx;
-    private JPanel boxPnl;
-    private JPanel section1Pnl;
-    private JPanel section2Pnl;
-    private JPanel section3Pnl;
-    private JPanel section4Pnl;
-    private JPanel section5Pnl;
+    private JPanel mainPanel;
+    private JButton btnNew;
+    private JButton btnEdit;
+    private JButton btnDelete;
+    private JPanel pnOptions;
+    private JPanel pnView;
+    private JPanel pnLeft;
+    private JPanel pnRight;
+    private JPanel pnFlashcard;
+    private JLabel lbWord;
+    private JLabel lbSection1;
+    private JLabel lbSection2;
+    private JLabel lbSection3;
+    private JLabel lbSection4;
+    private JLabel lbSection5;
+    private JComboBox cbxCollection;
+    private JPanel pnBox;
+    private JPanel pnSection1;
+    private JPanel pnSection2;
+    private JPanel pnSection3;
+    private JPanel pnSection4;
+    private JPanel pnSection5;
+
+    private Controller controller = new Controller();
+
+    public void setCardText(String text) {
+        lbWord.setText(text);
+    }
 
     public MainWindow() {
         try {
-            setContentPane(mainPnl);
+            setContentPane(mainPanel);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -44,7 +52,34 @@ public class MainWindow extends JFrame {
         setSize(800, 600);
         setMinimumSize(new Dimension(800, 600));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        btnNew.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openCreationDialog();
+            }
+        });
+        btnEdit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openEditionDialog();
+            }
+        });
+        btnDelete.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                controller.deleteSchema();
+            }
+        });
         setVisible(true);
+    }
+
+    private void openCreationDialog() {
+        new CreationDialog().setVisible(true);
+    }
+
+    private void openEditionDialog() {
+        new EditionDialog().setVisible(true);
     }
 
     {
@@ -62,94 +97,95 @@ public class MainWindow extends JFrame {
      * @noinspection ALL
      */
     private void $$$setupUI$$$() {
-        mainPnl = new JPanel();
-        mainPnl.setLayout(new BorderLayout(0, 0));
-        mainPnl.setMinimumSize(new Dimension(800, 570));
-        mainPnl.setPreferredSize(new Dimension(800, 570));
-        optionsPnl = new JPanel();
-        optionsPnl.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 4, new Insets(15, 15, 15, 15), -1, -1));
-        mainPnl.add(optionsPnl, BorderLayout.NORTH);
-        newButton = new JButton();
-        newButton.setText("New ...");
-        optionsPnl.add(newButton, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        editButton = new JButton();
-        editButton.setText("Edit");
-        optionsPnl.add(editButton, new com.intellij.uiDesigner.core.GridConstraints(0, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        deleteButton = new JButton();
-        deleteButton.setText("Delete");
-        optionsPnl.add(deleteButton, new com.intellij.uiDesigner.core.GridConstraints(0, 2, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        collectionCmbx = new JComboBox();
+        mainPanel = new JPanel();
+        mainPanel.setLayout(new BorderLayout(0, 0));
+        mainPanel.setMinimumSize(new Dimension(800, 570));
+        mainPanel.setPreferredSize(new Dimension(800, 570));
+        pnOptions = new JPanel();
+        pnOptions.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 4, new Insets(15, 15, 15, 15), -1, -1, true, false));
+        mainPanel.add(pnOptions, BorderLayout.NORTH);
+        btnNew = new JButton();
+        btnNew.setText("New ...");
+        pnOptions.add(btnNew, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        btnEdit = new JButton();
+        btnEdit.setText("Edit");
+        pnOptions.add(btnEdit, new com.intellij.uiDesigner.core.GridConstraints(0, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        btnDelete = new JButton();
+        btnDelete.setText("Delete");
+        pnOptions.add(btnDelete, new com.intellij.uiDesigner.core.GridConstraints(0, 2, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        cbxCollection = new JComboBox();
         final DefaultComboBoxModel defaultComboBoxModel1 = new DefaultComboBoxModel();
-        collectionCmbx.setModel(defaultComboBoxModel1);
-        collectionCmbx.setToolTipText("xd");
-        optionsPnl.add(collectionCmbx, new com.intellij.uiDesigner.core.GridConstraints(0, 3, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        viewPnl = new JPanel();
-        viewPnl.setLayout(new BorderLayout(0, 0));
-        mainPnl.add(viewPnl, BorderLayout.CENTER);
-        leftPnl = new JPanel();
-        leftPnl.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(20, 20, 20, 20), -1, -1));
-        viewPnl.add(leftPnl, BorderLayout.WEST);
-        boxPnl = new JPanel();
-        boxPnl.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(5, 1, new Insets(5, 5, 5, 5), -1, -1));
-        leftPnl.add(boxPnl, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, new Dimension(200, -1), null, null, 0, false));
-        boxPnl.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
-        section1Pnl = new JPanel();
-        section1Pnl.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(5, 25, 5, 25), -1, -1));
-        boxPnl.add(section1Pnl, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        section1Pnl.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
-        section1Lbl = new JLabel();
-        Font section1LblFont = this.$$$getFont$$$(null, -1, 26, section1Lbl.getFont());
-        if (section1LblFont != null) section1Lbl.setFont(section1LblFont);
-        section1Lbl.setText("0/50");
-        section1Pnl.add(section1Lbl, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        section2Pnl = new JPanel();
-        section2Pnl.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(5, 25, 5, 25), -1, -1));
-        boxPnl.add(section2Pnl, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        section2Pnl.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
-        section2Lbl = new JLabel();
-        Font section2LblFont = this.$$$getFont$$$(null, -1, 26, section2Lbl.getFont());
-        if (section2LblFont != null) section2Lbl.setFont(section2LblFont);
-        section2Lbl.setText("0/70");
-        section2Pnl.add(section2Lbl, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        section3Pnl = new JPanel();
-        section3Pnl.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(5, 25, 5, 25), -1, -1));
-        boxPnl.add(section3Pnl, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        section3Pnl.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
-        section3Lbl = new JLabel();
-        Font section3LblFont = this.$$$getFont$$$(null, -1, 26, section3Lbl.getFont());
-        if (section3LblFont != null) section3Lbl.setFont(section3LblFont);
-        section3Lbl.setText("0/95");
-        section3Pnl.add(section3Lbl, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        section4Pnl = new JPanel();
-        section4Pnl.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(5, 25, 5, 25), -1, -1));
-        boxPnl.add(section4Pnl, new com.intellij.uiDesigner.core.GridConstraints(3, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        section4Pnl.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
-        section4Lbl = new JLabel();
-        Font section4LblFont = this.$$$getFont$$$(null, -1, 26, section4Lbl.getFont());
-        if (section4LblFont != null) section4Lbl.setFont(section4LblFont);
-        section4Lbl.setText("0/130");
-        section4Pnl.add(section4Lbl, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        section5Pnl = new JPanel();
-        section5Pnl.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(5, 25, 5, 25), -1, -1));
-        boxPnl.add(section5Pnl, new com.intellij.uiDesigner.core.GridConstraints(4, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        section5Pnl.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
-        section5Lbl = new JLabel();
-        Font section5LblFont = this.$$$getFont$$$(null, -1, 26, section5Lbl.getFont());
-        if (section5LblFont != null) section5Lbl.setFont(section5LblFont);
-        section5Lbl.setText("0/155");
-        section5Pnl.add(section5Lbl, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        rightPnl = new JPanel();
-        rightPnl.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(100, 50, 100, 50), -1, -1));
-        viewPnl.add(rightPnl, BorderLayout.CENTER);
-        flashcardPnl = new JPanel();
-        flashcardPnl.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(50, 50, 50, 50), -1, -1));
-        rightPnl.add(flashcardPnl, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 1, false));
-        flashcardPnl.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
-        wordLbl = new JLabel();
-        Font wordLblFont = this.$$$getFont$$$(null, -1, 72, wordLbl.getFont());
-        if (wordLblFont != null) wordLbl.setFont(wordLblFont);
-        wordLbl.setText("Word");
-        flashcardPnl.add(wordLbl, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        defaultComboBoxModel1.addElement("No collections");
+        cbxCollection.setModel(defaultComboBoxModel1);
+        cbxCollection.setToolTipText("xd");
+        pnOptions.add(cbxCollection, new com.intellij.uiDesigner.core.GridConstraints(0, 3, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        pnView = new JPanel();
+        pnView.setLayout(new BorderLayout(0, 0));
+        mainPanel.add(pnView, BorderLayout.CENTER);
+        pnLeft = new JPanel();
+        pnLeft.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(20, 20, 20, 20), -1, -1));
+        pnView.add(pnLeft, BorderLayout.WEST);
+        pnBox = new JPanel();
+        pnBox.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(5, 1, new Insets(5, 5, 5, 5), -1, -1));
+        pnLeft.add(pnBox, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, new Dimension(200, -1), null, null, 0, false));
+        pnBox.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        pnSection1 = new JPanel();
+        pnSection1.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(5, 25, 5, 25), -1, -1));
+        pnBox.add(pnSection1, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        pnSection1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        lbSection1 = new JLabel();
+        Font lbSection1Font = this.$$$getFont$$$(null, -1, 26, lbSection1.getFont());
+        if (lbSection1Font != null) lbSection1.setFont(lbSection1Font);
+        lbSection1.setText("0/50");
+        pnSection1.add(lbSection1, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        pnSection2 = new JPanel();
+        pnSection2.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(5, 25, 5, 25), -1, -1));
+        pnBox.add(pnSection2, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        pnSection2.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        lbSection2 = new JLabel();
+        Font lbSection2Font = this.$$$getFont$$$(null, -1, 26, lbSection2.getFont());
+        if (lbSection2Font != null) lbSection2.setFont(lbSection2Font);
+        lbSection2.setText("0/70");
+        pnSection2.add(lbSection2, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        pnSection3 = new JPanel();
+        pnSection3.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(5, 25, 5, 25), -1, -1));
+        pnBox.add(pnSection3, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        pnSection3.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        lbSection3 = new JLabel();
+        Font lbSection3Font = this.$$$getFont$$$(null, -1, 26, lbSection3.getFont());
+        if (lbSection3Font != null) lbSection3.setFont(lbSection3Font);
+        lbSection3.setText("0/95");
+        pnSection3.add(lbSection3, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        pnSection4 = new JPanel();
+        pnSection4.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(5, 25, 5, 25), -1, -1));
+        pnBox.add(pnSection4, new com.intellij.uiDesigner.core.GridConstraints(3, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        pnSection4.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        lbSection4 = new JLabel();
+        Font lbSection4Font = this.$$$getFont$$$(null, -1, 26, lbSection4.getFont());
+        if (lbSection4Font != null) lbSection4.setFont(lbSection4Font);
+        lbSection4.setText("0/130");
+        pnSection4.add(lbSection4, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        pnSection5 = new JPanel();
+        pnSection5.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(5, 25, 5, 25), -1, -1));
+        pnBox.add(pnSection5, new com.intellij.uiDesigner.core.GridConstraints(4, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        pnSection5.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        lbSection5 = new JLabel();
+        Font lbSection5Font = this.$$$getFont$$$(null, -1, 26, lbSection5.getFont());
+        if (lbSection5Font != null) lbSection5.setFont(lbSection5Font);
+        lbSection5.setText("0/155");
+        pnSection5.add(lbSection5, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        pnRight = new JPanel();
+        pnRight.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(100, 50, 100, 50), -1, -1));
+        pnView.add(pnRight, BorderLayout.CENTER);
+        pnFlashcard = new JPanel();
+        pnFlashcard.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(50, 50, 50, 50), -1, -1));
+        pnRight.add(pnFlashcard, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 1, false));
+        pnFlashcard.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        lbWord = new JLabel();
+        Font lbWordFont = this.$$$getFont$$$(null, -1, 72, lbWord.getFont());
+        if (lbWordFont != null) lbWord.setFont(lbWordFont);
+        lbWord.setText("Word");
+        pnFlashcard.add(lbWord, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**
@@ -178,7 +214,7 @@ public class MainWindow extends JFrame {
      * @noinspection ALL
      */
     public JComponent $$$getRootComponent$$$() {
-        return mainPnl;
+        return mainPanel;
     }
 
 }
