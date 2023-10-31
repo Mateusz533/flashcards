@@ -20,7 +20,7 @@ public class CreationDialog extends JDialog {
     private JPanel pnButtons;
     private JPanel pnAction;
     private JCheckBox cbEmpty;
-    private Controller controller;
+    private final Controller controller;
 
     public CreationDialog(Controller controller) {
         setContentPane(contentPane);
@@ -74,9 +74,9 @@ public class CreationDialog extends JDialog {
         JFileChooser fileChooser = new JFileChooser();
         FileNameExtensionFilter fileFilter = new FileNameExtensionFilter(".csv, .txt", "txt", "csv");
         fileChooser.setFileFilter(fileFilter);
-        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+
+        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION)
             tfPath.setText(fileChooser.getSelectedFile().getPath());
-        }
     }
 
     private void setEnabledPathInput(boolean enabled) {
@@ -85,11 +85,20 @@ public class CreationDialog extends JDialog {
         btnPath.setEnabled(enabled);
     }
 
+    private boolean addNewCollection() {
+        if (tfPath.isEnabled())
+            return controller.addNewCollection(tfName.getText().trim(), tfPath.getText().trim());
+        else
+            return controller.addNewCollection(tfName.getText().trim());
+    }
+
     private void onOK() {
-        final boolean created = controller.createSchema(tfName.getText(), tfPath.getText());
-        // TODO: show message in window
-        if (created) System.out.println("OK");
-        dispose();
+        final boolean created = addNewCollection();
+
+        if (created)
+            dispose();
+        else
+            JOptionPane.showMessageDialog(null, "Invalid data!", "Error", JOptionPane.ERROR_MESSAGE);
     }
 
     private void onCancel() {

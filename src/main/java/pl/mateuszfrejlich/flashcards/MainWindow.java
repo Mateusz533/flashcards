@@ -37,7 +37,6 @@ public class MainWindow extends JFrame {
     private JPanel pnSection3;
     private JPanel pnSection4;
     private JPanel pnSection5;
-
     private Controller controller = new Controller();
 
     public void setCardText(String text) {
@@ -60,7 +59,11 @@ public class MainWindow extends JFrame {
         btnEdit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                openEditionDialog();
+                Object collectionName = cbxCollection.getSelectedItem();
+                if (collectionName == null)
+                    JOptionPane.showMessageDialog(null, "No collection selected!", "Error", JOptionPane.ERROR_MESSAGE);
+                else
+                    openEditionDialog(collectionName.toString());
             }
         });
         btnDelete.addActionListener(new ActionListener() {
@@ -83,8 +86,8 @@ public class MainWindow extends JFrame {
         new CreationDialog(controller).setVisible(true);
     }
 
-    private void openEditionDialog() {
-        new EditionDialog(controller).setVisible(true);
+    private void openEditionDialog(String name) {
+        new EditionDialog(name, controller).setVisible(true);
     }
 
     {
