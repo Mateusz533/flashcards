@@ -37,11 +37,7 @@ public class MainWindow extends JFrame {
     private JPanel pnSection3;
     private JPanel pnSection4;
     private JPanel pnSection5;
-    private Controller controller = new Controller();
-
-    public void setCardText(String text) {
-        lbWord.setText(text);
-    }
+    private final Controller controller = new Controller();
 
     public MainWindow() {
         setContentPane(mainPanel);
@@ -54,22 +50,42 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 openCreationDialog();
+                cbxCollection.removeAllItems();
+                controller.getCollectionNames().forEach(name -> cbxCollection.addItem(name));
             }
         });
         btnEdit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Object collectionName = cbxCollection.getSelectedItem();
-                if (collectionName == null)
+                Object collectionObject = cbxCollection.getSelectedItem();
+                if (collectionObject == null)
                     JOptionPane.showMessageDialog(null, "No collection selected!", "Error", JOptionPane.ERROR_MESSAGE);
                 else
-                    openEditionDialog(collectionName.toString());
+                    openEditionDialog(collectionObject.toString());
             }
         });
         btnDelete.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                controller.deleteSchema();
+                Object collectionObject = cbxCollection.getSelectedItem();
+                if (collectionObject == null) {
+                    JOptionPane.showMessageDialog(null, "No collection selected!", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                final boolean deleted = controller.deleteCollection(collectionObject.toString());
+                if (deleted)
+                    cbxCollection.removeItem(collectionObject);
+                else
+                    JOptionPane.showMessageDialog(null, "Internal database error!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        cbxCollection.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Object collectionObject = cbxCollection.getSelectedItem();
+                if (collectionObject != null)
+                    controller.selectCollection(collectionObject.toString());
             }
         });
         pnFlashcard.addMouseListener(new MouseAdapter() {
@@ -77,6 +93,7 @@ public class MainWindow extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
                 // TODO: flip card or show next card
+                System.out.println("Card flipped");
             }
         });
         setVisible(true);
@@ -123,7 +140,6 @@ public class MainWindow extends JFrame {
         pnOptions.add(btnDelete, new com.intellij.uiDesigner.core.GridConstraints(0, 2, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         cbxCollection = new JComboBox();
         final DefaultComboBoxModel defaultComboBoxModel1 = new DefaultComboBoxModel();
-        defaultComboBoxModel1.addElement("No collections");
         cbxCollection.setModel(defaultComboBoxModel1);
         cbxCollection.setToolTipText("xd");
         pnOptions.add(cbxCollection, new com.intellij.uiDesigner.core.GridConstraints(0, 3, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));

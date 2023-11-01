@@ -4,7 +4,7 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Iterator;
+import java.util.stream.Stream;
 
 public class EditionDialog extends JDialog {
     private JPanel contentPane;
@@ -38,6 +38,7 @@ public class EditionDialog extends JDialog {
         setTitle("Edition dialog");
         this.controller = controller;
         pnForm.setBorder(new TitledBorder(pnForm.getBorder(), name));
+        refreshWordList();
 
         buttonOK.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -68,10 +69,8 @@ public class EditionDialog extends JDialog {
         btnSwapSides.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Iterator<Flashcard> items = controller.getItems(name);
-                cbxItem.removeAllItems();
                 isSwapped = !isSwapped;
-                items.forEachRemaining(item -> cbxItem.addItem(formatCardText(item)));
+                refreshWordList();
             }
         });
         btnAdd.addActionListener(new ActionListener() {
@@ -110,6 +109,12 @@ public class EditionDialog extends JDialog {
                 }
             }
         });
+    }
+
+    private void refreshWordList() {
+        Stream<Flashcard> items = controller.getItems();
+        cbxItem.removeAllItems();
+        items.forEach(item -> cbxItem.addItem(formatCardText(item)));
     }
 
     private void updateItem(int index) {

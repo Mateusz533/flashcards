@@ -1,65 +1,99 @@
 package pl.mateuszfrejlich.flashcards;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Controller {
-    private String selectedSchema = null;
+    private String selectedCollectionName;
+    private DataBaseAdapter dbAdapter = new DataBaseAdapter();
+    private List<Flashcard> activeCollection;
 
     public boolean addNewCollection(String name) {
         return addNewCollection(name, null);
     }
 
     public boolean addNewCollection(String name, String path) {
-        // TODO: validate name and path
-        if (name.isBlank() || (path != null && path.isBlank()))
+        if (name.isBlank())
             return false;
 
-        // TODO: create new schema in database
-        final boolean created = true;
+        final boolean validName = name.chars().allMatch((int c) -> isValidChar((char) c));
+        if (!validName)
+            return false;
+
+        if (path != null && path.isBlank())
+            return false;
+
+        // TODO: open and validate file
+
+        final boolean created = dbAdapter.createNewSchema(name);
         if (!created)
             return false;
 
+        // TODO: conditionally add data from file
+
         return true;
     }
 
-    public void deleteSchema() {
-        System.out.println("Delete schema");
-        // TODO: delete selected schema from database and from combo-box
+    private boolean isValidChar(char c) {
+        return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '_' || c == ' ';
+    }
+
+    public void selectCollection(String name) {
+        selectedCollectionName = name;
+        fetchData();
+    }
+
+    public boolean deleteCollection() {
+        return deleteCollection(selectedCollectionName);
+    }
+
+    public boolean deleteCollection(String name) {
+        return dbAdapter.deleteSchema(name);
     }
 
     public void putCachedData() {
-        // TODO: send cached data to database
+        dbAdapter.updateSchema(selectedCollectionName, activeCollection.stream());
     }
 
     public boolean addToCache(Flashcard card) {
-        // TODO: put data to cache
-        if (!card.isCorrect())
+        if (card.isCorrect()) {
+            activeCollection.add(card);
+            return true;
+        } else
             return false;
-
-        return true;
     }
 
     public boolean updateCache(int index, Flashcard card) {
-        // TODO: put data to cache
-        if (!card.isCorrect())
+        if (card.isCorrect()) {
+            activeCollection.set(index, card);
+            return true;
+        } else
             return false;
-
-        return true;
     }
 
     public void deleteFromCache(int index) {
-        // TODO: remove data from cache
+        activeCollection.remove(index);
     }
 
     public void clearCache() {
-        // TODO: clear cache
+        activeCollection.clear();
+        fetchData();
     }
 
-    public Iterator<Flashcard> getItems(String collectionName) {
-        // TODO: get items from cache instead
-        ArrayList<Flashcard> arrayList = new ArrayList<>();
-        arrayList.add(new Flashcard("<front text>", "<reverse text>"));
-        return arrayList.iterator();
+    public Stream<Flashcard> getItems() {
+        return activeCollection.stream();
+    }
+
+    public Stream<String> getCollectionNames(){
+        return dbAdapter.getSchemaNames();
+    }
+    private void fetchData() {
+        try {
+            Stream<Flashcard> stream = dbAdapter.getDataFromSchema(selectedCollectionName);
+            activeCollection = stream.collect(Collectors.toList());
+        } catch (Exception e) {
+            System.out.println("Fetching data error: " + e.getMessage());
+        }
     }
 }
