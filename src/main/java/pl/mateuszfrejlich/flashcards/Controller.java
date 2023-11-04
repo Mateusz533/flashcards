@@ -1,13 +1,27 @@
 package pl.mateuszfrejlich.flashcards;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Controller {
-    private String selectedCollectionName;
     private DataBaseAdapter dbAdapter = new DataBaseAdapter();
-    private List<Flashcard> activeCollection;
+    private String selectedCollectionName = null;
+    private CardQueue preparedCards = null;
+    private CardBox cardBox = null;
+    private CardQueue archivedCards = null;
+    private Flashcard activeCard = null;
+    private CardsChoice cardsChoice = CardsChoice.UNSELECTED;
+
+    public Flashcard getActiveCard() {
+        return activeCard;
+    }
+
+    public CardsChoice getCardChoice() {
+        return cardsChoice;
+    }
+
+    public void setCardsChoice(CardsChoice cardsChoice) {
+        this.cardsChoice = cardsChoice;
+    }
 
     public boolean addNewCollection(String name) {
         return addNewCollection(name, null);
@@ -52,48 +66,52 @@ public class Controller {
         return dbAdapter.deleteSchema(name);
     }
 
-    public void putCachedData() {
-        dbAdapter.updateSchema(selectedCollectionName, activeCollection.stream());
+    public CardCache createCache() {
+        return new CardCache(preparedCards.getCards().stream());
     }
 
-    public boolean addToCache(Flashcard card) {
-        if (card.isCorrect()) {
-            activeCollection.add(card);
-            return true;
-        } else
-            return false;
-    }
-
-    public boolean updateCache(int index, Flashcard card) {
-        if (card.isCorrect()) {
-            activeCollection.set(index, card);
-            return true;
-        } else
-            return false;
-    }
-
-    public void deleteFromCache(int index) {
-        activeCollection.remove(index);
-    }
-
-    public void clearCache() {
-        activeCollection.clear();
+    public void putCachedData(CardCache cache) {
+        dbAdapter.updateSchema(selectedCollectionName, cache.getItems());
         fetchData();
     }
 
-    public Stream<Flashcard> getItems() {
-        return activeCollection.stream();
-    }
-
-    public Stream<String> getCollectionNames(){
+    public Stream<String> getCollectionNames() {
         return dbAdapter.getSchemaNames();
     }
+
     private void fetchData() {
         try {
-            Stream<Flashcard> stream = dbAdapter.getDataFromSchema(selectedCollectionName);
-            activeCollection = stream.collect(Collectors.toList());
+            preparedCards = new CardQueue(dbAdapter.getPreparedCards(selectedCollectionName));
+            archivedCards = new CardQueue(dbAdapter.getArchivedCards(selectedCollectionName));
+            cardBox = new CardBox(archivedCards, dbAdapter.getCardBox(selectedCollectionName));
         } catch (Exception e) {
             System.out.println("Fetching data error: " + e.getMessage());
+        }
+    }
+
+    public void putBorrowedCard(boolean isPassed) {
+        switch (cardsChoice) {
+            case PREPARED -> {
+                final boolean success = isPassed ? cardBox.addNewCard(activeCard) : false;
+                preparedCards.putBorrowedCard(!success);
+            }
+            case ARCHIVED -> archivedCards.putBorrowedCard(isPassed);
+            case INBOX -> cardBox.putBorrowedCard(isPassed);
+            case UNSELECTED -> {
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + cardsChoice);
+        }
+        activeCard = null;
+    }
+
+    public void processNextCard() {
+        switch (cardsChoice) {
+            case PREPARED -> activeCard = preparedCards.popNextCard();
+            case ARCHIVED -> activeCard = archivedCards.popNextCard();
+            case INBOX -> activeCard = cardBox.popNextCard();
+            case UNSELECTED -> {
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + cardsChoice);
         }
     }
 }

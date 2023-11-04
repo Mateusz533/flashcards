@@ -28,6 +28,7 @@ public class EditionDialog extends JDialog {
     private JButton btnUpdate;
     private JButton btnDelete;
     private Controller controller;
+    private CardCache cache;
     private boolean isSwapped = false;
 
     public EditionDialog(String name, Controller controller) {
@@ -37,6 +38,7 @@ public class EditionDialog extends JDialog {
         setMinimumSize(new Dimension(400, 300));
         setTitle("Edition dialog");
         this.controller = controller;
+        this.cache = controller.createCache();
         pnForm.setBorder(new TitledBorder(pnForm.getBorder(), name));
         refreshWordList();
 
@@ -77,7 +79,7 @@ public class EditionDialog extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Flashcard card = new Flashcard(tfFront.getText().trim(), tfReverse.getText().trim());
-                final boolean updated = controller.addToCache(card);
+                final boolean updated = cache.addItem(card);
 
                 if (updated)
                     cbxItem.addItem(formatCardText(card));
@@ -104,7 +106,7 @@ public class EditionDialog extends JDialog {
                 if (index == -1)
                     JOptionPane.showMessageDialog(null, "No selected item!", "Error", JOptionPane.ERROR_MESSAGE);
                 else {
-                    controller.deleteFromCache(index);
+                    cache.deleteItem(index);
                     cbxItem.removeItemAt(index);
                 }
             }
@@ -112,14 +114,14 @@ public class EditionDialog extends JDialog {
     }
 
     private void refreshWordList() {
-        Stream<Flashcard> items = controller.getItems();
+        Stream<Flashcard> items = cache.getItems();
         cbxItem.removeAllItems();
         items.forEach(item -> cbxItem.addItem(formatCardText(item)));
     }
 
     private void updateItem(int index) {
         Flashcard card = new Flashcard(tfFront.getText().trim(), tfReverse.getText().trim());
-        final boolean updated = controller.updateCache(index, card);
+        final boolean updated = cache.updateItem(index, card);
 
         if (updated) {
             cbxItem.removeItemAt(index);
@@ -136,12 +138,12 @@ public class EditionDialog extends JDialog {
     }
 
     private void onOK() {
-        controller.putCachedData();
+        controller.putCachedData(cache);
         dispose();
     }
 
     private void onCancel() {
-        controller.clearCache();
+        cache = null;
         dispose();
     }
 
