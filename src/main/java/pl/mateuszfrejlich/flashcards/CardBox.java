@@ -15,7 +15,7 @@ public class CardBox {
     private CardQueue archive;
 
     public CardBox(CardQueue archive, List<Stream<Flashcard>> data) {
-        if(data.size() != sectionSizes.length)
+        if (data.size() != sectionSizes.length)
             throw new IllegalArgumentException("Required list of size: 5 !!!");
         this.archive = archive;
         cardSections = new ArrayList<>(sectionSizes.length);

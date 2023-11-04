@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class CardQueue {
-    private Deque<Flashcard> cards;
+    private final Deque<Flashcard> cards;
     private Flashcard lentCard = null;
 
     CardQueue(Stream<Flashcard> cards) {

@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class DataBaseAdapter {
-    private Map<String, List<Flashcard>> mockDB = new HashMap<>();
+    private final Map<String, List<Flashcard>> mockDB = new HashMap<>();
 
     public Stream<String> getSchemaNames() {
         return mockDB.keySet().stream();

@@ -20,7 +20,8 @@ public class Controller {
     }
 
     public void setCardsChoice(CardsChoice cardsChoice) {
-        this.cardsChoice = cardsChoice;
+        if (selectedCollectionName != null)
+            this.cardsChoice = cardsChoice;
     }
 
     public boolean addNewCollection(String name) {
@@ -59,11 +60,16 @@ public class Controller {
     }
 
     public boolean deleteCollection() {
-        return deleteCollection(selectedCollectionName);
-    }
+        if (!dbAdapter.deleteSchema(selectedCollectionName))
+            return false;
 
-    public boolean deleteCollection(String name) {
-        return dbAdapter.deleteSchema(name);
+        selectedCollectionName = null;
+        preparedCards = null;
+        cardBox = null;
+        archivedCards = null;
+        activeCard = null;
+        cardsChoice = CardsChoice.UNSELECTED;
+        return true;
     }
 
     public CardCache createCache() {

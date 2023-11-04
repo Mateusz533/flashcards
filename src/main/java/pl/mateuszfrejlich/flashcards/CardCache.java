@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class CardCache {
-    private List<Flashcard> items;
+    private final List<Flashcard> items;
 
     public CardCache(Stream<Flashcard> items) {
         this.items = items.collect(Collectors.toCollection(ArrayList::new));
