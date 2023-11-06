@@ -7,6 +7,7 @@ import java.awt.event.*;
 import java.util.stream.Stream;
 
 public class EditionDialog extends JDialog {
+    private final Controller controller;
     private JPanel contentPane;
     private JButton buttonOK;
     private JButton buttonCancel;
@@ -27,7 +28,6 @@ public class EditionDialog extends JDialog {
     private JPanel pnButtons;
     private JButton btnUpdate;
     private JButton btnDelete;
-    private final Controller controller;
     private CardCache cache;
     private boolean isSwapped = false;
 
@@ -108,9 +108,31 @@ public class EditionDialog extends JDialog {
                 else {
                     cache.deleteItem(index);
                     cbxItem.removeItemAt(index);
+                    fillTextFields();
                 }
             }
         });
+        cbxItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                fillTextFields();
+            }
+        });
+    }
+
+    private void fillTextFields() {
+        final int index = cbxItem.getSelectedIndex();
+        if (index == -1)
+            return;
+
+        Flashcard card = cache.getItem(index);
+        tfFront.setText(card.getFrontText());
+        tfReverse.setText(card.getReverseText());
+    }
+
+    private void clearTextFields() {
+        tfFront.setText("");
+        tfReverse.setText("");
     }
 
     private void refreshWordList() {
@@ -126,6 +148,7 @@ public class EditionDialog extends JDialog {
         if (updated) {
             cbxItem.removeItemAt(index);
             cbxItem.insertItemAt(formatCardText(card), index);
+            clearTextFields();
         } else
             JOptionPane.showMessageDialog(null, "Invalid data!", "Error", JOptionPane.ERROR_MESSAGE);
     }

@@ -81,7 +81,7 @@
                   </grid>
                 </constraints>
                 <properties>
-                  <toolTipText value="Expected CSV file with patern:  &lt;reverse_card_text&gt;,&lt;front_card_text&gt;"/>
+                  <toolTipText value="Expected CSV or TXT file with patern:  &lt;front_card_text&gt;|&lt;reverse_card_text&gt;"/>
                 </properties>
               </component>
               <component id="ac161" class="javax.swing.JButton" binding="btnPath">
@@ -122,7 +122,7 @@
                   </grid>
                 </constraints>
                 <properties>
-                  <toolTipText value="Forbidden characters: / \ : * ? &quot; &lt; &gt; |"/>
+                  <toolTipText value="Must consists of letters, numbers, spaces or underscores"/>
                 </properties>
               </component>
             </children>

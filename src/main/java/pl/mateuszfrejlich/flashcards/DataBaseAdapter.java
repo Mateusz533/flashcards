@@ -14,9 +14,9 @@ public class DataBaseAdapter {
         return mockDB.keySet().stream();
     }
 
-    public boolean createNewSchema(String name) {
+    public boolean createNewSchema(String name, Stream<Flashcard> initialData) {
         // TODO: create new schema in database
-        mockDB.put(name, new ArrayList<>());
+        mockDB.put(name, initialData.collect(Collectors.toCollection(ArrayList::new)));
         return true;
     }
 

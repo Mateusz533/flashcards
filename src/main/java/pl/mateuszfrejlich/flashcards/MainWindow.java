@@ -12,6 +12,9 @@ import java.awt.event.MouseEvent;
 
 @Component
 public class MainWindow extends JFrame {
+    private static final float TEXT_SIZE_FACTOR = 0.69F;
+    private static final float MAX_TEXT_SIZE = 48.0F;
+    private static final float FLASHCARD_MARGIN = 30.0F;
     private final Controller controller = new Controller();
     private JPanel mainPanel;
     private JButton btnNew;
@@ -100,8 +103,11 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Object collectionObject = cbxCollection.getSelectedItem();
-                if (collectionObject != null)
+                if (collectionObject != null){
                     controller.selectCollection(collectionObject.toString());
+                    btnPrepared.setText(String.valueOf(controller.preparedCardsNumber()));
+                    btnArchived.setText(String.valueOf(controller.archivedCardsNumber()));
+                }
             }
         });
         pnFlashcard.addMouseListener(new MouseAdapter() {
@@ -112,7 +118,7 @@ public class MainWindow extends JFrame {
                 switch (cardState) {
                     case SHOWN -> {
                         cardState = CardState.FLIPPED;
-                        lbWord.setText(controller.getActiveCard().getReverseText());
+                        setCardText(controller.getActiveCard().getFrontText());
                         setEnabledStates(false, true);
                     }
                     case FLIPPED -> {
@@ -125,7 +131,7 @@ public class MainWindow extends JFrame {
                             return;
 
                         cardState = CardState.SHOWN;
-                        lbWord.setText(activeCard.getFrontText());
+                        setCardText(activeCard.getReverseText());
                         setEnabledStates(false, false);
                     }
                     default -> throw new IllegalStateException("Unexpected value: " + cardState);
@@ -169,9 +175,16 @@ public class MainWindow extends JFrame {
     }
 
     private void setGuessedState() {
-        lbWord.setText("Get next");
+        setCardText("Get next");
         cardState = CardState.GUESSED;
         setEnabledStates(true, false);
+    }
+
+    private void setCardText(String text) {
+        final float calcSize = TEXT_SIZE_FACTOR * (pnFlashcard.getWidth() - 2.0F * FLASHCARD_MARGIN) / text.length();
+        final float textSize = (calcSize < MAX_TEXT_SIZE) ? calcSize : MAX_TEXT_SIZE;
+        lbWord.setText(text);
+        lbWord.setFont(lbWord.getFont().deriveFont(textSize));
     }
 
     private void setEnabledStates(boolean cardsChoice, boolean cardRedirection) {

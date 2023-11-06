@@ -1,5 +1,9 @@
 package pl.mateuszfrejlich.flashcards;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.stream.Stream;
 
 public class Controller {
@@ -10,6 +14,14 @@ public class Controller {
     private CardQueue archivedCards = null;
     private Flashcard activeCard = null;
     private CardsChoice cardsChoice = CardsChoice.UNSELECTED;
+
+    public int preparedCardsNumber() {
+        return (preparedCards != null) ? preparedCards.size() : 0;
+    }
+
+    public int archivedCardsNumber() {
+        return (archivedCards != null) ? archivedCards.size() : 0;
+    }
 
     public Flashcard getActiveCard() {
         return activeCard;
@@ -29,29 +41,18 @@ public class Controller {
     }
 
     public boolean addNewCollection(String name, String path) {
-        if (name.isBlank())
-            return false;
+        if (!isValidName(name)) return false;
 
-        final boolean validName = name.chars().allMatch((int c) -> isValidChar((char) c));
-        if (!validName)
-            return false;
+        ArrayList<Flashcard> list = new ArrayList<>();
 
-        if (path != null && path.isBlank())
-            return false;
+        if (path != null) {
+            final boolean isValidFile = getDataFromFile(path, list);
+            if (!isValidFile)
+                return false;
+        }
 
-        // TODO: open and validate file
-
-        final boolean created = dbAdapter.createNewSchema(name);
-        if (!created)
-            return false;
-
-        // TODO: conditionally add data from file
-
-        return true;
-    }
-
-    private boolean isValidChar(char c) {
-        return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '_' || c == ' ';
+        final boolean isCreated = dbAdapter.createNewSchema(name, list.stream());
+        return isCreated;
     }
 
     public void selectCollection(String name) {
@@ -73,7 +74,7 @@ public class Controller {
     }
 
     public CardCache createCache() {
-        return new CardCache(preparedCards.getCards().stream());
+        return new CardCache(preparedCards.getCards());
     }
 
     public void putCachedData(CardCache cache) {
@@ -85,21 +86,13 @@ public class Controller {
         return dbAdapter.getSchemaNames();
     }
 
-    private void fetchData() {
-        try {
-            preparedCards = new CardQueue(dbAdapter.getPreparedCards(selectedCollectionName));
-            archivedCards = new CardQueue(dbAdapter.getArchivedCards(selectedCollectionName));
-            cardBox = new CardBox(archivedCards, dbAdapter.getCardBox(selectedCollectionName));
-        } catch (Exception e) {
-            System.out.println("Fetching data error: " + e.getMessage());
-        }
-    }
-
     public void putBorrowedCard(boolean isPassed) {
         switch (cardsChoice) {
             case PREPARED -> {
-                final boolean success = isPassed ? cardBox.addNewCard(activeCard) : false;
-                preparedCards.putBorrowedCard(!success);
+                final boolean isRetrieved = !isPassed || !cardBox.addNewCard(activeCard);
+                preparedCards.putBorrowedCard(isRetrieved);
+                if (!isRetrieved)
+                    dbAdapter.updateSchema(selectedCollectionName, preparedCards.getCards());
             }
             case ARCHIVED -> archivedCards.putBorrowedCard(isPassed);
             case INBOX -> cardBox.putBorrowedCard(isPassed);
@@ -119,5 +112,51 @@ public class Controller {
             }
             default -> throw new IllegalStateException("Unexpected value: " + cardsChoice);
         }
+    }
+
+    private void fetchData() {
+        try {
+            preparedCards = new CardQueue(dbAdapter.getPreparedCards(selectedCollectionName));
+            archivedCards = new CardQueue(dbAdapter.getArchivedCards(selectedCollectionName));
+            cardBox = new CardBox(archivedCards, dbAdapter.getCardBox(selectedCollectionName));
+        } catch (Exception e) {
+            System.out.println("Fetching data error: " + e.getMessage());
+        }
+    }
+
+    private boolean getDataFromFile(String path, ArrayList<Flashcard> list) {
+        try {
+            File file = new File(path);
+            Scanner reader = new Scanner(file);
+            while (reader.hasNextLine()) {
+                String line = reader.nextLine();
+                String[] sentences = line.trim().split("\\|");
+                Flashcard nextCard = new Flashcard(sentences[0].trim(), sentences[1].trim());
+                if (!nextCard.isCorrect())
+                    throw new Exception();
+                else
+                    list.add(nextCard);
+            }
+            reader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found!");
+            return false;
+        } catch (Exception e) {
+            System.out.println("Invalid file data!");
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean isValidName(String name) {
+        if (name.isBlank())
+            return false;
+
+        return name.chars().allMatch((int c) -> isValidChar((char) c));
+    }
+
+    private boolean isValidChar(char c) {
+        return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '_' || c == ' ';
     }
 }

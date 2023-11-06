@@ -13,8 +13,12 @@ public class CardQueue {
         this.cards = cards.collect(Collectors.toCollection(ArrayDeque::new));
     }
 
-    public Deque<Flashcard> getCards() {
-        return cards;
+    int size() {
+        return cards.size();
+    }
+
+    public Stream<Flashcard> getCards() {
+        return cards.stream();
     }
 
     public void addCard(Flashcard card) {

@@ -16,6 +16,10 @@ public class CardCache {
         return items == null ? null : items.stream();
     }
 
+    public Flashcard getItem(int index) {
+        return items.get(index);
+    }
+
     public boolean addItem(Flashcard card) {
         if (card.isCorrect()) {
             items.add(card);
