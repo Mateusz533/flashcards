@@ -1,9 +1,6 @@
 package pl.mateuszfrejlich.flashcards;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -14,12 +11,12 @@ public class CardBox {
     private int selectedSectionIndex = 0;
     private CardQueue archive;
 
-    public CardBox(CardQueue archive, List<Stream<Flashcard>> data) {
-        if (data.size() != sectionSizes.length)
+    public CardBox(CardQueue archive, List<Stream<Flashcard>> sections) {
+        if (sections.size() != sectionSizes.length)
             throw new IllegalArgumentException("Required list of size: 5 !!!");
         this.archive = archive;
         cardSections = new ArrayList<>(sectionSizes.length);
-        for (Stream<Flashcard> stream : data) {
+        for (Stream<Flashcard> stream : sections) {
             ArrayDeque<Flashcard> section = stream.collect(Collectors.toCollection(ArrayDeque::new));
             cardSections.add(section);
         }
@@ -69,5 +66,9 @@ public class CardBox {
             firstSection.addLast(card);
 
         return enoughSpareSpace;
+    }
+
+    public List<Stream<Flashcard>> getSections() {
+        return cardSections.stream().map(Collection::stream).collect(Collectors.toList());
     }
 }

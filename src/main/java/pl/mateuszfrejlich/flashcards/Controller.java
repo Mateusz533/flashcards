@@ -2,18 +2,24 @@ package pl.mateuszfrejlich.flashcards;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Stream;
 
 public class Controller {
-    private DataBaseAdapter dbAdapter = new DataBaseAdapter();
+    private DataBaseAdapter dbAdapter;
     private String selectedCollectionName = null;
     private CardQueue preparedCards = null;
     private CardBox cardBox = null;
     private CardQueue archivedCards = null;
     private Flashcard activeCard = null;
     private CardsChoice cardsChoice = CardsChoice.UNSELECTED;
+
+    public Controller() throws SQLException {
+        this.dbAdapter = new DataBaseAdapter();
+    }
 
     public int preparedCardsNumber() {
         return (preparedCards != null) ? preparedCards.size() : 0;
@@ -51,7 +57,7 @@ public class Controller {
                 return false;
         }
 
-        final boolean isCreated = dbAdapter.createNewSchema(name, list.stream());
+        final boolean isCreated = dbAdapter.createNewCollection(name, list.stream());
         return isCreated;
     }
 
@@ -61,7 +67,7 @@ public class Controller {
     }
 
     public boolean deleteCollection() {
-        if (!dbAdapter.deleteSchema(selectedCollectionName))
+        if (!dbAdapter.deleteCollection(selectedCollectionName))
             return false;
 
         selectedCollectionName = null;
@@ -78,12 +84,13 @@ public class Controller {
     }
 
     public void putCachedData(CardCache cache) {
-        dbAdapter.updateSchema(selectedCollectionName, cache.getItems());
-        fetchData();
+        Stream<Flashcard> cachedCards = cache.getItems();
+        if (cachedCards != null)
+            preparedCards = new CardQueue(cachedCards);
     }
 
     public Stream<String> getCollectionNames() {
-        return dbAdapter.getSchemaNames();
+        return dbAdapter.getCollectionNames();
     }
 
     public void putBorrowedCard(boolean isPassed) {
@@ -91,8 +98,6 @@ public class Controller {
             case PREPARED -> {
                 final boolean isRetrieved = !isPassed || !cardBox.addNewCard(activeCard);
                 preparedCards.putBorrowedCard(isRetrieved);
-                if (!isRetrieved)
-                    dbAdapter.updateSchema(selectedCollectionName, preparedCards.getCards());
             }
             case ARCHIVED -> archivedCards.putBorrowedCard(isPassed);
             case INBOX -> cardBox.putBorrowedCard(isPassed);
@@ -114,14 +119,28 @@ public class Controller {
         }
     }
 
+    public void saveChanges() {
+        if (selectedCollectionName == null)
+            return;
+
+        dbAdapter.updatePreparedCardsCollection(selectedCollectionName, preparedCards.getCards());
+        dbAdapter.updateArchivedCardsCollection(selectedCollectionName, archivedCards.getCards());
+        dbAdapter.updateInboxCardsCollection(selectedCollectionName, cardBox.getSections());
+    }
+
     private void fetchData() {
-        try {
-            preparedCards = new CardQueue(dbAdapter.getPreparedCards(selectedCollectionName));
-            archivedCards = new CardQueue(dbAdapter.getArchivedCards(selectedCollectionName));
-            cardBox = new CardBox(archivedCards, dbAdapter.getCardBox(selectedCollectionName));
-        } catch (Exception e) {
-            System.out.println("Fetching data error: " + e.getMessage());
+        Stream<Flashcard> preparedCards = dbAdapter.getPreparedCards(selectedCollectionName);
+        Stream<Flashcard> archivedCards = dbAdapter.getArchivedCards(selectedCollectionName);
+        List<Stream<Flashcard>> cardBoxSections = dbAdapter.getCardBoxSections(selectedCollectionName);
+
+        if (preparedCards == null || archivedCards == null || cardBoxSections == null) {
+            System.out.println("Fetching data error!");
+            return;
         }
+
+        this.preparedCards = new CardQueue(preparedCards);
+        this.archivedCards = new CardQueue(archivedCards);
+        cardBox = new CardBox(this.archivedCards, cardBoxSections);
     }
 
     private boolean getDataFromFile(String path, ArrayList<Flashcard> list) {
