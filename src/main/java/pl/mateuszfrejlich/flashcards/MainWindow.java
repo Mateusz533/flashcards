@@ -46,13 +46,13 @@ public class MainWindow extends JFrame {
     private JPanel pnPrepared;
     private JPanel pnArchived;
     private JPanel pnUnboxedCards;
-    private CardState cardState = CardState.GUESSED;
+    private CardState cardState = CardState.TO_DRAW;
 
     public MainWindow() {
         try {
             controller = new Controller();
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            handleError(e.getMessage());
             dispose();
             return;
         }
@@ -72,7 +72,7 @@ public class MainWindow extends JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                if (cardState != CardState.GUESSED)
+                if (cardState != CardState.TO_DRAW)
                     controller.putBorrowedCard(false);
                 controller.saveChanges();
                 super.windowClosing(e);
@@ -89,14 +89,14 @@ public class MainWindow extends JFrame {
         btnEdit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (cardState != CardState.GUESSED) {
-                    JOptionPane.showMessageDialog(null, "The card must be put down!", "Error", JOptionPane.ERROR_MESSAGE);
+                if (cardState != CardState.TO_DRAW) {
+                    handleError("The card must be put down!");
                     return;
                 }
 
                 Object collectionObject = cbxCollection.getSelectedItem();
                 if (collectionObject == null)
-                    JOptionPane.showMessageDialog(null, "No collection selected!", "Error", JOptionPane.ERROR_MESSAGE);
+                    handleError("No collection selected!");
                 else
                     openEditionDialog(collectionObject.toString());
             }
@@ -106,18 +106,18 @@ public class MainWindow extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 Object collectionObject = cbxCollection.getSelectedItem();
                 if (collectionObject == null) {
-                    JOptionPane.showMessageDialog(null, "No collection selected!", "Error", JOptionPane.ERROR_MESSAGE);
+                    handleError("No collection selected!");
                     return;
                 }
 
                 final boolean deleted = controller.deleteCollection();
                 if (!deleted) {
-                    JOptionPane.showMessageDialog(null, "Internal database error!", "Error", JOptionPane.ERROR_MESSAGE);
+                    handleError("Internal database error!");
                     return;
                 }
 
                 cbxCollection.removeItem(collectionObject);
-                setGuessedState();
+                setCardState(CardState.TO_DRAW);
             }
         });
         cbxCollection.addActionListener(new ActionListener() {
@@ -136,63 +136,46 @@ public class MainWindow extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
-
-                switch (cardState) {
-                    case SHOWN -> {
-                        cardState = CardState.FLIPPED;
-                        setCardText(controller.getActiveCard().getFrontText());
-                        setEnabledStates(false, true);
-                    }
-                    case FLIPPED -> {
-                        // State changing by button
-                    }
-                    case GUESSED -> {
-                        controller.processNextCard();
-                        Flashcard activeCard = controller.getActiveCard();
-                        if (activeCard == null)
-                            return;
-
-                        cardState = CardState.SHOWN;
-                        setCardText(activeCard.getReverseText());
-                        setEnabledStates(false, false);
-                    }
-                    default -> throw new IllegalStateException("Unexpected value: " + cardState);
-                }
+                handleCardClicked();
             }
         });
         btnPassed.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 controller.putBorrowedCard(true);
-                setGuessedState();
+                setCardState(CardState.TO_DRAW);
             }
         });
         btnFailed.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 controller.putBorrowedCard(false);
-                setGuessedState();
+                setCardState(CardState.TO_DRAW);
             }
         });
         btnPrepared.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                chooseCardContainer(CardsChoice.PREPARED);
+                chooseCardContainer(CardGroupChoice.PREPARED);
             }
         });
         btnArchived.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                chooseCardContainer(CardsChoice.ARCHIVED);
+                chooseCardContainer(CardGroupChoice.ARCHIVED);
             }
         });
         pnBox.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
-                chooseCardContainer(CardsChoice.INBOX);
+                chooseCardContainer(CardGroupChoice.INBOX);
             }
         });
+    }
+
+    private static void handleError(String message) {
+        JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
     private void refreshCollectionList() {
@@ -201,10 +184,39 @@ public class MainWindow extends JFrame {
             names.forEach(cbxCollection::addItem);
     }
 
-    private void setGuessedState() {
-        setCardText("Get next");
-        cardState = CardState.GUESSED;
-        setEnabledStates(true, false);
+    private void handleCardClicked() {
+        switch (cardState) {
+            case REVERSED -> setCardState(CardState.FACE_UP);
+            case FACE_UP -> {
+                // From that state it is changed by different action
+            }
+            case TO_DRAW -> setCardState(CardState.REVERSED);
+            default -> throw new IllegalStateException("Unexpected value: " + cardState);
+        }
+    }
+
+    private void setCardState(CardState state) {
+        switch (state) {
+            case REVERSED -> {
+                controller.processNextCard();
+                Flashcard activeCard = controller.getActiveCard();
+                if (activeCard == null)
+                    return;
+
+                setCardText(activeCard.reverseText());
+                setEnabledStates(false, false);
+            }
+            case FACE_UP -> {
+                setCardText(controller.getActiveCard().frontText());
+                setEnabledStates(false, true);
+            }
+            case TO_DRAW -> {
+                setCardText("Get next");
+                setEnabledStates(true, false);
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + state);
+        }
+        cardState = state;
     }
 
     private void setCardText(String text) {
@@ -221,17 +233,17 @@ public class MainWindow extends JFrame {
         btnFailed.setEnabled(cardRedirection);
     }
 
-    private void chooseCardContainer(CardsChoice choice) {
-        if (controller.getCardChoice() == choice || cardState != CardState.GUESSED)
+    private void chooseCardContainer(CardGroupChoice choice) {
+        if (controller.getCardGroupChoice() == choice || cardState != CardState.TO_DRAW)
             return;
 
-        controller.setCardsChoice(choice);
+        controller.setCardGroupChoice(choice);
 
         Color selectedColor = new Color(20, 100, 20);
         Color normalColor = new Color(20, 20, 20);
-        lbPrepared.setForeground(choice == CardsChoice.PREPARED ? selectedColor : normalColor);
-        lbArchived.setForeground(choice == CardsChoice.ARCHIVED ? selectedColor : normalColor);
-        pnBox.setBorder(new LineBorder(choice == CardsChoice.INBOX ? selectedColor : normalColor));
+        lbPrepared.setForeground(choice == CardGroupChoice.PREPARED ? selectedColor : normalColor);
+        lbArchived.setForeground(choice == CardGroupChoice.ARCHIVED ? selectedColor : normalColor);
+        pnBox.setBorder(new LineBorder(choice == CardGroupChoice.INBOX ? selectedColor : normalColor));
 
         switch (choice) {
             case PREPARED -> {

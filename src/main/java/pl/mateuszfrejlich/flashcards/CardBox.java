@@ -5,17 +5,18 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class CardBox {
-    final private static int[] sectionSizes = new int[]{50, 70, 95, 130, 155};
-    private List<Deque<Flashcard>> cardSections;
+    private static final int[] SECTION_SIZES = new int[]{50, 70, 95, 130, 155};
+    private static final float RESERVE_FOR_RETURNING_CARDS = 0.1F * SECTION_SIZES[1];
+    private final List<Deque<Flashcard>> cardSections;
+    private final CardQueue archive;
     private Flashcard lentCard = null;
     private int selectedSectionIndex = 0;
-    private CardQueue archive;
 
     public CardBox(CardQueue archive, List<Stream<Flashcard>> sections) {
-        if (sections.size() != sectionSizes.length)
+        if (sections.size() != SECTION_SIZES.length)
             throw new IllegalArgumentException("Required list of size: 5 !!!");
         this.archive = archive;
-        cardSections = new ArrayList<>(sectionSizes.length);
+        cardSections = new ArrayList<>(SECTION_SIZES.length);
         for (Stream<Flashcard> stream : sections) {
             ArrayDeque<Flashcard> section = stream.collect(Collectors.toCollection(ArrayDeque::new));
             cardSections.add(section);
@@ -23,7 +24,7 @@ public class CardBox {
     }
 
     public Flashcard popNextCard() {
-        final boolean firstSectionFull = cardSections.get(0).size() == sectionSizes[0];
+        final boolean firstSectionFull = cardSections.get(0).size() == SECTION_SIZES[0];
 
         for (int i = 0, size = cardSections.size(); i < size; ++i) {
             Deque<Flashcard> section = cardSections.get(i);
@@ -33,7 +34,7 @@ public class CardBox {
                 return null;
             if (i != 0 && firstSectionFull)
                 return null;
-            if (nextSection != null && nextSection.size() == sectionSizes[i + 1])
+            if (nextSection != null && nextSection.size() == SECTION_SIZES[i + 1])
                 continue;
 
             lentCard = section.pollFirst();
@@ -49,7 +50,7 @@ public class CardBox {
 
         if (!isPassed) {
             cardSections.get(0).addLast(lentCard);
-        } else if (selectedSectionIndex + 1 == sectionSizes.length) {
+        } else if (selectedSectionIndex + 1 == SECTION_SIZES.length) {
             archive.addCard(lentCard);
         } else {
             cardSections.get(selectedSectionIndex + 1).addLast(lentCard);
@@ -60,7 +61,7 @@ public class CardBox {
 
     public boolean addNewCard(Flashcard card) {
         Deque<Flashcard> firstSection = cardSections.get(0);
-        boolean enoughSpareSpace = firstSection.size() < 0.9 * sectionSizes[0];
+        final boolean enoughSpareSpace = firstSection.size() < SECTION_SIZES[0] - RESERVE_FOR_RETURNING_CARDS;
 
         if (enoughSpareSpace)
             firstSection.addLast(card);

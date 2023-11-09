@@ -1,6 +1,6 @@
 package pl.mateuszfrejlich.flashcards;
 
-public enum CardsChoice {
+public enum CardGroupChoice {
     ARCHIVED,
     INBOX,
     PREPARED,

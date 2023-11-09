@@ -5,22 +5,22 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class CardCache {
+public class CollectionEditor {
     private final List<Flashcard> items;
 
-    public CardCache(Stream<Flashcard> items) {
+    public CollectionEditor(Stream<Flashcard> items) {
         this.items = items.collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public Stream<Flashcard> getItems() {
+    public Stream<Flashcard> getCards() {
         return items == null ? null : items.stream();
     }
 
-    public Flashcard getItem(int index) {
+    public Flashcard getCard(int index) {
         return items.get(index);
     }
 
-    public boolean addItem(Flashcard card) {
+    public boolean addCard(Flashcard card) {
         if (card.isCorrect()) {
             items.add(card);
             return true;
@@ -28,7 +28,7 @@ public class CardCache {
             return false;
     }
 
-    public boolean updateItem(int index, Flashcard card) {
+    public boolean updateCard(int index, Flashcard card) {
         if (card.isCorrect()) {
             items.set(index, card);
             return true;
@@ -36,7 +36,7 @@ public class CardCache {
             return false;
     }
 
-    public void deleteItem(int index) {
+    public void deleteCard(int index) {
         items.remove(index);
     }
 }

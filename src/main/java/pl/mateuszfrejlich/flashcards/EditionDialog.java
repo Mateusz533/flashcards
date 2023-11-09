@@ -28,7 +28,7 @@ public class EditionDialog extends JDialog {
     private JPanel pnButtons;
     private JButton btnUpdate;
     private JButton btnDelete;
-    private CardCache cache;
+    private CollectionEditor editor;
     private boolean isSwapped = false;
 
     public EditionDialog(String name, Controller controller) {
@@ -38,7 +38,7 @@ public class EditionDialog extends JDialog {
         setMinimumSize(new Dimension(400, 300));
         setTitle("Edition dialog");
         this.controller = controller;
-        this.cache = controller.createCache();
+        this.editor = controller.createEditor();
         pnForm.setBorder(new TitledBorder(pnForm.getBorder(), name));
         refreshWordList();
 
@@ -79,7 +79,7 @@ public class EditionDialog extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Flashcard card = new Flashcard(tfFront.getText().trim(), tfReverse.getText().trim());
-                final boolean updated = cache.addItem(card);
+                final boolean updated = editor.addCard(card);
 
                 if (updated)
                     cbxItem.addItem(formatCardText(card));
@@ -106,7 +106,7 @@ public class EditionDialog extends JDialog {
                 if (index == -1)
                     JOptionPane.showMessageDialog(null, "No selected item!", "Error", JOptionPane.ERROR_MESSAGE);
                 else {
-                    cache.deleteItem(index);
+                    editor.deleteCard(index);
                     cbxItem.removeItemAt(index);
                     fillTextFields();
                 }
@@ -125,9 +125,9 @@ public class EditionDialog extends JDialog {
         if (index == -1)
             return;
 
-        Flashcard card = cache.getItem(index);
-        tfFront.setText(card.getFrontText());
-        tfReverse.setText(card.getReverseText());
+        Flashcard card = editor.getCard(index);
+        tfFront.setText(card.frontText());
+        tfReverse.setText(card.reverseText());
     }
 
     private void clearTextFields() {
@@ -136,14 +136,14 @@ public class EditionDialog extends JDialog {
     }
 
     private void refreshWordList() {
-        Stream<Flashcard> items = cache.getItems();
+        Stream<Flashcard> items = editor.getCards();
         cbxItem.removeAllItems();
         items.forEach(item -> cbxItem.addItem(formatCardText(item)));
     }
 
     private void updateItem(int index) {
         Flashcard card = new Flashcard(tfFront.getText().trim(), tfReverse.getText().trim());
-        final boolean updated = cache.updateItem(index, card);
+        final boolean updated = editor.updateCard(index, card);
 
         if (updated) {
             cbxItem.removeItemAt(index);
@@ -155,18 +155,18 @@ public class EditionDialog extends JDialog {
 
     private String formatCardText(Flashcard card) {
         if (isSwapped)
-            return card.getReverseText() + '/' + card.getFrontText();
+            return card.reverseText() + '/' + card.frontText();
         else
-            return card.getFrontText() + '/' + card.getReverseText();
+            return card.frontText() + '/' + card.reverseText();
     }
 
     private void onOK() {
-        controller.putCachedData(cache);
+        controller.executeEdition(editor);
         dispose();
     }
 
     private void onCancel() {
-        cache = null;
+        editor = null;
         dispose();
     }
 }

@@ -9,13 +9,13 @@ import java.util.Scanner;
 import java.util.stream.Stream;
 
 public class Controller {
-    private DataBaseAdapter dbAdapter;
+    private final DataBaseAdapter dbAdapter;
     private String selectedCollectionName = null;
     private CardQueue preparedCards = null;
     private CardBox cardBox = null;
     private CardQueue archivedCards = null;
     private Flashcard activeCard = null;
-    private CardsChoice cardsChoice = CardsChoice.UNSELECTED;
+    private CardGroupChoice cardGroupChoice = CardGroupChoice.UNSELECTED;
 
     public Controller() throws SQLException {
         this.dbAdapter = new DataBaseAdapter();
@@ -33,13 +33,13 @@ public class Controller {
         return activeCard;
     }
 
-    public CardsChoice getCardChoice() {
-        return cardsChoice;
+    public CardGroupChoice getCardGroupChoice() {
+        return cardGroupChoice;
     }
 
-    public void setCardsChoice(CardsChoice cardsChoice) {
+    public void setCardGroupChoice(CardGroupChoice cardGroupChoice) {
         if (selectedCollectionName != null)
-            this.cardsChoice = cardsChoice;
+            this.cardGroupChoice = cardGroupChoice;
     }
 
     public boolean addNewCollection(String name) {
@@ -57,8 +57,7 @@ public class Controller {
                 return false;
         }
 
-        final boolean isCreated = dbAdapter.createNewCollection(name, list.stream());
-        return isCreated;
+        return dbAdapter.createNewCollection(name, list.stream());
     }
 
     public void selectCollection(String name) {
@@ -75,16 +74,16 @@ public class Controller {
         cardBox = null;
         archivedCards = null;
         activeCard = null;
-        cardsChoice = CardsChoice.UNSELECTED;
+        cardGroupChoice = CardGroupChoice.UNSELECTED;
         return true;
     }
 
-    public CardCache createCache() {
-        return new CardCache(preparedCards.getCards());
+    public CollectionEditor createEditor() {
+        return new CollectionEditor(preparedCards.getCards());
     }
 
-    public void putCachedData(CardCache cache) {
-        Stream<Flashcard> cachedCards = cache.getItems();
+    public void executeEdition(CollectionEditor editor) {
+        Stream<Flashcard> cachedCards = editor.getCards();
         if (cachedCards != null)
             preparedCards = new CardQueue(cachedCards);
     }
@@ -94,28 +93,28 @@ public class Controller {
     }
 
     public void putBorrowedCard(boolean isPassed) {
-        switch (cardsChoice) {
+        switch (cardGroupChoice) {
             case PREPARED -> {
                 final boolean isRetrieved = !isPassed || !cardBox.addNewCard(activeCard);
                 preparedCards.putBorrowedCard(isRetrieved);
             }
-            case ARCHIVED -> archivedCards.putBorrowedCard(isPassed);
             case INBOX -> cardBox.putBorrowedCard(isPassed);
+            case ARCHIVED -> archivedCards.putBorrowedCard(isPassed);
             case UNSELECTED -> {
             }
-            default -> throw new IllegalStateException("Unexpected value: " + cardsChoice);
+            default -> throw new IllegalStateException("Unexpected value: " + cardGroupChoice);
         }
         activeCard = null;
     }
 
     public void processNextCard() {
-        switch (cardsChoice) {
+        switch (cardGroupChoice) {
             case PREPARED -> activeCard = preparedCards.popNextCard();
-            case ARCHIVED -> activeCard = archivedCards.popNextCard();
             case INBOX -> activeCard = cardBox.popNextCard();
+            case ARCHIVED -> activeCard = archivedCards.popNextCard();
             case UNSELECTED -> {
             }
-            default -> throw new IllegalStateException("Unexpected value: " + cardsChoice);
+            default -> throw new IllegalStateException("Unexpected value: " + cardGroupChoice);
         }
     }
 

@@ -1,7 +1,7 @@
 package pl.mateuszfrejlich.flashcards;
 
 public enum CardState {
-    FLIPPED,
-    GUESSED,
-    SHOWN,
+    FACE_UP,
+    REVERSED,
+    TO_DRAW,
 }

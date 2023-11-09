@@ -21,7 +21,7 @@ public class DataBaseAdapter {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (Exception e) {
-            // TODO: consider what to do
+            throw new SQLException("Failed to add MySQL JDBC Driver!");
         }
         Connection connection = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
         statement = connection.createStatement();
@@ -88,7 +88,7 @@ public class DataBaseAdapter {
                 return false;
         }
 
-        return initialData == null || fillTable(name + PREPARED_SUFFIX, initialData);
+        return (initialData == null) || fillTable(name + PREPARED_SUFFIX, initialData);
     }
 
     public boolean deleteCollection(String name) {
@@ -152,7 +152,7 @@ public class DataBaseAdapter {
         String queryBegin = "INSERT INTO `" + SCHEMA_NAME + "`.`" + tableName + "`(front, reverse) VALUES ('";
 
         return stream.allMatch(card -> {
-            String query = queryBegin + card.getFrontText() + "', '" + card.getReverseText() + "');";
+            String query = queryBegin + card.frontText() + "', '" + card.reverseText() + "');";
             return safeExecute(query);
         });
     }
