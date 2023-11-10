@@ -25,6 +25,10 @@ public class Controller {
         return (preparedCards != null) ? preparedCards.size() : 0;
     }
 
+    public List<Integer> boxSectionsFilling() {
+        return (cardBox != null) ? cardBox.sectionsFilling() : List.of(0, 0, 0, 0, 0);
+    }
+
     public int archivedCardsNumber() {
         return (archivedCards != null) ? archivedCards.size() : 0;
     }
@@ -57,7 +61,9 @@ public class Controller {
                 return false;
         }
 
-        return dbAdapter.createNewCollection(name, list.stream());
+        Stream<Flashcard> stream = !list.isEmpty() ? list.stream() : null;
+
+        return dbAdapter.createNewCollection(name, stream);
     }
 
     public void selectCollection(String name) {

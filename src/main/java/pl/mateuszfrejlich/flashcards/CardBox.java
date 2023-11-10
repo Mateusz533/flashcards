@@ -6,7 +6,7 @@ import java.util.stream.Stream;
 
 public class CardBox {
     private static final int[] SECTION_SIZES = new int[]{50, 70, 95, 130, 155};
-    private static final float RESERVE_FOR_RETURNING_CARDS = 0.1F * SECTION_SIZES[1];
+    private static final float FIRST_SECTION_MIN_FILLING = 0.9F * SECTION_SIZES[1];
     private final List<Deque<Flashcard>> cardSections;
     private final CardQueue archive;
     private Flashcard lentCard = null;
@@ -23,25 +23,32 @@ public class CardBox {
         }
     }
 
+    public static List<Integer> sectionSizes() {
+        return Arrays.stream(SECTION_SIZES).boxed().collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public List<Integer> sectionsFilling() {
+        return cardSections.stream().map(Deque::size).toList();
+    }
+
     public Flashcard popNextCard() {
-        final boolean firstSectionFull = cardSections.get(0).size() == SECTION_SIZES[0];
+        Deque<Flashcard> firstSection = cardSections.get(0);
+        if (firstSection.size() < FIRST_SECTION_MIN_FILLING)
+            return null;
 
-        for (int i = 0, size = cardSections.size(); i < size; ++i) {
-            Deque<Flashcard> section = cardSections.get(i);
-            Deque<Flashcard> nextSection = i + 1 < size ? cardSections.get(i + 1) : null;
+        for (int i = 0, sectionsNumber = cardSections.size(); i < sectionsNumber; ++i) {
+            Deque<Flashcard> currentSection = cardSections.get(i);
+            Deque<Flashcard> nextSection = i + 1 < sectionsNumber ? cardSections.get(i + 1) : null;
+            final boolean isNextSectionFull = nextSection != null && nextSection.size() == SECTION_SIZES[i + 1];
 
-            if (section.isEmpty())
-                return null;
-            if (i != 0 && firstSectionFull)
-                return null;
-            if (nextSection != null && nextSection.size() == SECTION_SIZES[i + 1])
-                continue;
-
-            lentCard = section.pollFirst();
-            selectedSectionIndex = i;
+            if (!isNextSectionFull) {
+                lentCard = currentSection.pollFirst();
+                selectedSectionIndex = i;
+                return lentCard;
+            }
         }
 
-        return lentCard;
+        return null;
     }
 
     public void putBorrowedCard(boolean isPassed) {
@@ -60,13 +67,16 @@ public class CardBox {
     }
 
     public boolean addNewCard(Flashcard card) {
+        int stackedFreeSpace = 0;
+        for (int i = 0; i < cardSections.size(); ++i) {
+            stackedFreeSpace += SECTION_SIZES[i] - cardSections.get(i).size();
+            if (stackedFreeSpace < i + 1)
+                return false;
+        }
+
         Deque<Flashcard> firstSection = cardSections.get(0);
-        final boolean enoughSpareSpace = firstSection.size() < SECTION_SIZES[0] - RESERVE_FOR_RETURNING_CARDS;
-
-        if (enoughSpareSpace)
-            firstSection.addLast(card);
-
-        return enoughSpareSpace;
+        firstSection.addLast(card);
+        return true;
     }
 
     public List<Stream<Flashcard>> getSections() {

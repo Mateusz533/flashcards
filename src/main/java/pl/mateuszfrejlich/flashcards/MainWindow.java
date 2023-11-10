@@ -6,6 +6,7 @@ import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.List;
 import java.util.stream.Stream;
 
 @Component
@@ -68,6 +69,10 @@ public class MainWindow extends JFrame {
         setVisible(true);
     }
 
+    private static void handleError(String message) {
+        JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
     private void addListeners() {
         addWindowListener(new WindowAdapter() {
             @Override
@@ -127,8 +132,7 @@ public class MainWindow extends JFrame {
                 if (collectionObject != null) {
                     controller.saveChanges();
                     controller.selectCollection(collectionObject.toString());
-                    btnPrepared.setText(String.valueOf(controller.preparedCardsNumber()));
-                    btnArchived.setText(String.valueOf(controller.archivedCardsNumber()));
+                    refreshGroupView();
                 }
             }
         });
@@ -174,14 +178,28 @@ public class MainWindow extends JFrame {
         });
     }
 
-    private static void handleError(String message) {
-        JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
-    }
-
     private void refreshCollectionList() {
         Stream<String> names = controller.getCollectionNames();
         if (names != null)
             names.forEach(cbxCollection::addItem);
+    }
+
+    private void refreshGroupView() {
+        btnPrepared.setText(String.valueOf(controller.preparedCardsNumber()));
+        btnArchived.setText(String.valueOf(controller.archivedCardsNumber()));
+        List<JLabel> sectionLabels = List.of(lbSection1, lbSection2, lbSection3, lbSection4, lbSection5);
+        List<Integer> sectionsFilling = controller.boxSectionsFilling();
+        List<Integer> sectionSizes = CardBox.sectionSizes();
+
+        if (sectionLabels.size() != sectionsFilling.size()) {
+            handleError("Incorrect card box data!");
+            return;
+        }
+
+        for (int i = 0; i < sectionLabels.size(); ++i) {
+            String text = String.valueOf(sectionsFilling.get(i)) + '/' + sectionSizes.get(i);
+            sectionLabels.get(i).setText(text);
+        }
     }
 
     private void handleCardClicked() {
@@ -213,6 +231,7 @@ public class MainWindow extends JFrame {
             case TO_DRAW -> {
                 setCardText("Get next");
                 setEnabledStates(true, false);
+                refreshGroupView();
             }
             default -> throw new IllegalStateException("Unexpected value: " + state);
         }
@@ -250,13 +269,13 @@ public class MainWindow extends JFrame {
                 btnPassed.setText("REMEMBERED");
                 btnFailed.setText("KEEP");
             }
-            case ARCHIVED -> {
-                btnPassed.setText("PRESERVE");
-                btnFailed.setText("REMOVE");
-            }
             case INBOX -> {
                 btnPassed.setText("PASSED");
                 btnFailed.setText("FAILED");
+            }
+            case ARCHIVED -> {
+                btnPassed.setText("PRESERVE");
+                btnFailed.setText("REMOVE");
             }
             default -> throw new IllegalStateException("Unexpected value: " + choice);
         }
