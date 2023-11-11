@@ -101,8 +101,8 @@ public class Controller {
     public void putBorrowedCard(boolean isPassed) {
         switch (cardGroupChoice) {
             case PREPARED -> {
-                final boolean isRetrieved = !isPassed || !cardBox.addNewCard(activeCard);
-                preparedCards.putBorrowedCard(isRetrieved);
+                final boolean isPreserved = !isPassed || !cardBox.addNewCard(activeCard);
+                preparedCards.putBorrowedCard(isPreserved);
             }
             case INBOX -> cardBox.putBorrowedCard(isPassed);
             case ARCHIVED -> archivedCards.putBorrowedCard(isPassed);

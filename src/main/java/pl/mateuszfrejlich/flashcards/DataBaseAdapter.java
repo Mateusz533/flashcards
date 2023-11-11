@@ -2,9 +2,7 @@ package pl.mateuszfrejlich.flashcards;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class DataBaseAdapter {
@@ -12,9 +10,9 @@ public class DataBaseAdapter {
     private static final String DB_URL = "jdbc:mysql://localhost/" + SCHEMA_NAME;
     private static final String USERNAME = "guest";
     private static final String PASSWORD = "Guest123";
-    private static final String PREPARED_SUFFIX = "-pre";
-    private static final String ARCHIVED_SUFFIX = "-arch";
-    private static final String[] SECTION_SUFFIXES = {"-sec-1", "-sec-2", "-sec-3", "-sec-4", "-sec-5"};
+    private static final String PREPARED_CARDS_SUFFIX = "-pre";
+    private static final String ARCHIVED_CARDS_SUFFIX = "-arch";
+    private static final List<String> SECTION_SUFFIXES = List.of("-sec-1", "-sec-2", "-sec-3", "-sec-4", "-sec-5");
     private final Statement statement;
 
     DataBaseAdapter() throws SQLException {
@@ -41,16 +39,16 @@ public class DataBaseAdapter {
         }
 
         return names.stream()
-                .filter(s -> s.endsWith(PREPARED_SUFFIX))
-                .map(s -> s.substring(0, s.length() - PREPARED_SUFFIX.length()));
+                .filter(s -> s.endsWith(PREPARED_CARDS_SUFFIX))
+                .map(s -> s.substring(0, s.length() - PREPARED_CARDS_SUFFIX.length()));
     }
 
     public Stream<Flashcard> getPreparedCards(String collectionName) {
-        return getCards(collectionName + PREPARED_SUFFIX);
+        return getCards(collectionName + PREPARED_CARDS_SUFFIX);
     }
 
     public Stream<Flashcard> getArchivedCards(String collectionName) {
-        return getCards(collectionName + ARCHIVED_SUFFIX);
+        return getCards(collectionName + ARCHIVED_CARDS_SUFFIX);
     }
 
     public List<Stream<Flashcard>> getCardBoxSections(String collectionName) {
@@ -68,16 +66,16 @@ public class DataBaseAdapter {
     }
 
     public void updatePreparedCardsCollection(String selectedCollectionName, Stream<Flashcard> stream) {
-        overrideTable(selectedCollectionName + PREPARED_SUFFIX, stream);
+        overrideTable(selectedCollectionName + PREPARED_CARDS_SUFFIX, stream);
     }
 
     public void updateArchivedCardsCollection(String selectedCollectionName, Stream<Flashcard> stream) {
-        overrideTable(selectedCollectionName + ARCHIVED_SUFFIX, stream);
+        overrideTable(selectedCollectionName + ARCHIVED_CARDS_SUFFIX, stream);
     }
 
     public void updateInboxCardsCollection(String selectedCollectionName, List<Stream<Flashcard>> sections) {
-        for (int i = 0; i < SECTION_SUFFIXES.length; ++i) {
-            overrideTable(selectedCollectionName + SECTION_SUFFIXES[i], sections.get(i));
+        for (int i = 0; i < SECTION_SUFFIXES.size(); ++i) {
+            overrideTable(selectedCollectionName + SECTION_SUFFIXES.get(i), sections.get(i));
         }
     }
 
@@ -88,7 +86,7 @@ public class DataBaseAdapter {
                 return false;
         }
 
-        return (initialData == null) || fillTable(name + PREPARED_SUFFIX, initialData);
+        return (initialData == null) || fillTable(name + PREPARED_CARDS_SUFFIX, initialData);
     }
 
     public boolean deleteCollection(String name) {
@@ -158,9 +156,9 @@ public class DataBaseAdapter {
     }
 
     private List<String> allSuffixes() {
-        List<String> suffixes = Arrays.stream(SECTION_SUFFIXES).collect(Collectors.toCollection(ArrayList::new));
-        suffixes.add(PREPARED_SUFFIX);
-        suffixes.add(ARCHIVED_SUFFIX);
+        List<String> suffixes = new ArrayList<>(SECTION_SUFFIXES);
+        suffixes.add(PREPARED_CARDS_SUFFIX);
+        suffixes.add(ARCHIVED_CARDS_SUFFIX);
 
         return suffixes;
     }
