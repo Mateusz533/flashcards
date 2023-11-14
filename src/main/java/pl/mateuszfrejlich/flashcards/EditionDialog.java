@@ -7,7 +7,7 @@ import java.awt.event.*;
 import java.util.stream.Stream;
 
 public class EditionDialog extends JDialog {
-    private final Controller controller;
+    private final CardCollection cardCollection;
     private JPanel contentPane;
     private JButton buttonOK;
     private JButton buttonCancel;
@@ -31,15 +31,15 @@ public class EditionDialog extends JDialog {
     private CollectionEditor editor;
     private boolean isSwapped = false;
 
-    public EditionDialog(String name, Controller controller) {
+    public EditionDialog(CardCollection cardCollection) {
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
         setMinimumSize(new Dimension(400, 300));
         setTitle("Edition dialog");
-        this.controller = controller;
-        this.editor = controller.createEditor();
-        pnForm.setBorder(new TitledBorder(pnForm.getBorder(), name));
+        this.cardCollection = cardCollection;
+        this.editor = cardCollection.createEditor();
+        pnForm.setBorder(new TitledBorder(pnForm.getBorder(), cardCollection.getName()));
         refreshWordList();
 
         buttonOK.addActionListener(new ActionListener() {
@@ -161,7 +161,7 @@ public class EditionDialog extends JDialog {
     }
 
     private void onOK() {
-        controller.executeEdition(editor);
+        cardCollection.executeEdition(editor);
         dispose();
     }
 

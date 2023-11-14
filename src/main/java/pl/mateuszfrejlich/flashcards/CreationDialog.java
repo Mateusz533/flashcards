@@ -6,7 +6,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 public class CreationDialog extends JDialog {
-    private final Controller controller;
+    private final CollectionsManager collectionsManager;
     private JPanel contentPane;
     private JButton buttonOK;
     private JButton buttonCancel;
@@ -22,13 +22,13 @@ public class CreationDialog extends JDialog {
     private JPanel pnAction;
     private JCheckBox cbEmpty;
 
-    public CreationDialog(Controller controller) {
+    public CreationDialog(CollectionsManager collectionsManager) {
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
         setMinimumSize(new Dimension(400, 200));
         setTitle("Creation dialog");
-        this.controller = controller;
+        this.collectionsManager = collectionsManager;
 
         buttonOK.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -87,9 +87,9 @@ public class CreationDialog extends JDialog {
 
     private boolean addNewCollection() {
         if (tfPath.isEnabled())
-            return controller.addNewCollection(tfName.getText().trim(), tfPath.getText().trim());
+            return collectionsManager.addNewCollection(tfName.getText().trim(), tfPath.getText().trim());
         else
-            return controller.addNewCollection(tfName.getText().trim());
+            return collectionsManager.addNewCollection(tfName.getText().trim());
     }
 
     private void onOK() {

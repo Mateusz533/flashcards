@@ -14,7 +14,9 @@ public class MainWindow extends JFrame {
     private static final float TEXT_SIZE_FACTOR = 0.69F;
     private static final float MAX_TEXT_SIZE = 48.0F;
     private static final float FLASHCARD_MARGIN = 30.0F;
-    private Controller controller;
+    private CardCollection activeCollection = null;
+    private CollectionsManager collectionsManager;
+    private CardState cardState = CardState.ABSENT;
     private JPanel mainPanel;
     private JButton btnNew;
     private JButton btnEdit;
@@ -47,11 +49,10 @@ public class MainWindow extends JFrame {
     private JPanel pnPrepared;
     private JPanel pnArchived;
     private JPanel pnUnboxedCards;
-    private CardState cardState = CardState.TO_DRAW;
 
     public MainWindow() {
         try {
-            controller = new Controller();
+            collectionsManager = new CollectionsManager();
         } catch (Exception e) {
             handleError(e.getMessage());
             dispose();
@@ -64,6 +65,8 @@ public class MainWindow extends JFrame {
         setMinimumSize(new Dimension(800, 600));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         addListeners();
+
+        setCardState(CardState.ABSENT);
         refreshCollectionList();
 
         setVisible(true);
@@ -73,151 +76,111 @@ public class MainWindow extends JFrame {
         JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
-    private void addListeners() {
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                if (cardState != CardState.TO_DRAW)
-                    controller.putBorrowedCard(false);
-                controller.saveChanges();
-                super.windowClosing(e);
-            }
-        });
-        btnNew.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                openCreationDialog();
-                cbxCollection.removeAllItems();
-                refreshCollectionList();
-            }
-        });
-        btnEdit.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (cardState != CardState.TO_DRAW) {
-                    handleError("The card must be put down!");
-                    return;
-                }
-
-                Object collectionObject = cbxCollection.getSelectedItem();
-                if (collectionObject == null)
-                    handleError("No collection selected!");
-                else
-                    openEditionDialog(collectionObject.toString());
-            }
-        });
-        btnDelete.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Object collectionObject = cbxCollection.getSelectedItem();
-                if (collectionObject == null) {
-                    handleError("No collection selected!");
-                    return;
-                }
-
-                final boolean deleted = controller.deleteCollection();
-                if (!deleted) {
-                    handleError("Internal database error!");
-                    return;
-                }
-
-                cbxCollection.removeItem(collectionObject);
-                setCardState(CardState.TO_DRAW);
-            }
-        });
-        cbxCollection.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Object collectionObject = cbxCollection.getSelectedItem();
-                if (collectionObject != null) {
-                    controller.saveChanges();
-                    controller.selectCollection(collectionObject.toString());
-                    refreshGroupView();
-                }
-            }
-        });
-        pnFlashcard.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                super.mouseClicked(e);
-                handleCardClicked();
-            }
-        });
-        btnPassed.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                controller.putBorrowedCard(true);
-                setCardState(CardState.TO_DRAW);
-            }
-        });
-        btnFailed.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                controller.putBorrowedCard(false);
-                setCardState(CardState.TO_DRAW);
-            }
-        });
-        btnPrepared.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                chooseCardContainer(CardGroupChoice.PREPARED);
-            }
-        });
-        btnArchived.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                chooseCardContainer(CardGroupChoice.ARCHIVED);
-            }
-        });
-        pnBox.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                super.mouseClicked(e);
-                chooseCardContainer(CardGroupChoice.INBOX);
-            }
-        });
+    private void handleNewClicked() {
+        openCreationDialog();
+        cbxCollection.removeAllItems();
+        refreshCollectionList();
     }
 
-    private void refreshCollectionList() {
-        Stream<String> names = controller.getCollectionNames();
-        if (names != null)
-            names.forEach(cbxCollection::addItem);
+    private void handleEditClicked() {
+        if (activeCollection == null)
+            handleError("No collection selected!");
+        else
+            openEditionDialog();
     }
 
-    private void refreshGroupView() {
-        btnPrepared.setText(String.valueOf(controller.preparedCardsNumber()));
-        btnArchived.setText(String.valueOf(controller.archivedCardsNumber()));
-        List<JLabel> sectionLabels = List.of(lbSection1, lbSection2, lbSection3, lbSection4, lbSection5);
-        List<Integer> sectionsFilling = controller.boxSectionsFilling();
-        List<Integer> sectionSizes = CardBox.sectionSizes();
-
-        if (sectionLabels.size() != sectionsFilling.size()) {
-            handleError("Incorrect card box data!");
+    private void handleDeleteClicked() {
+        if (activeCollection == null) {
+            handleError("No collection selected!");
             return;
         }
 
-        for (int i = 0; i < sectionLabels.size(); ++i) {
-            String text = String.valueOf(sectionsFilling.get(i)) + '/' + sectionSizes.get(i);
-            sectionLabels.get(i).setText(text);
-        }
+        String collectionName = activeCollection.getName();
+        String msg = "Are you sure you want to permanently delete collection '" + collectionName + "'?";
+        int response = JOptionPane.showConfirmDialog(null, msg, "Confirm deletion", JOptionPane.YES_NO_OPTION);
+        if (response != JOptionPane.YES_OPTION)
+            return;
+
+        deleteCollection(collectionName);
+    }
+
+    private void handleCollectionChanged() {
+        Object collectionObject = cbxCollection.getSelectedItem();
+        if (collectionObject != null) {
+            if (activeCollection != null)
+                activeCollection.saveChanges();
+
+            chooseCardContainer(CardGroupChoice.UNSELECTED);
+            activeCollection = collectionsManager.getCollection(collectionObject.toString());
+            setCardState(CardState.TO_DRAW);
+        } else
+            setPanelEnabled(pnView, false);
+    }
+
+    private void handlePreparedClicked() {
+        if (cardState == CardState.TO_DRAW)
+            chooseCardContainer(CardGroupChoice.PREPARED);
+    }
+
+    private void handleBoxClicked() {
+        if (cardState == CardState.TO_DRAW)
+            chooseCardContainer(CardGroupChoice.INBOX);
+    }
+
+    private void handleArchivedClicked() {
+        if (cardState == CardState.TO_DRAW)
+            chooseCardContainer(CardGroupChoice.ARCHIVED);
+    }
+
+    private void handlePassedClicked() {
+        activeCollection.putBorrowedCard(true);
+        setCardState(CardState.TO_DRAW);
+    }
+
+    private void handleFailedClicked() {
+        activeCollection.putBorrowedCard(false);
+        setCardState(CardState.TO_DRAW);
     }
 
     private void handleCardClicked() {
         switch (cardState) {
+            case TO_DRAW -> setCardState(CardState.REVERSED);
             case REVERSED -> setCardState(CardState.FACE_UP);
-            case FACE_UP -> {
+            case FACE_UP, ABSENT -> {
                 // From that state it is changed by different action
             }
-            case TO_DRAW -> setCardState(CardState.REVERSED);
             default -> throw new IllegalStateException("Unexpected value: " + cardState);
         }
+    }
+
+    private void handleWindowClosing() {
+        if (activeCollection == null)
+            return;
+
+        if (activeCollection.getActiveCard() != null)
+            activeCollection.putBorrowedCard(false);
+
+        activeCollection.saveChanges();
+    }
+
+    private void deleteCollection(String collectionName) {
+        final boolean deleted = collectionsManager.deleteCollection(collectionName);
+        if (!deleted) {
+            handleError("Request to database has caused an error! Collection wasn't delete properly!");
+            return;
+        }
+
+        activeCollection = null;
+        chooseCardContainer(CardGroupChoice.UNSELECTED);
+        setCardState(CardState.ABSENT);
+        cbxCollection.removeItem(cbxCollection.getSelectedItem());
     }
 
     private void setCardState(CardState state) {
         switch (state) {
             case REVERSED -> {
-                controller.processNextCard();
-                Flashcard activeCard = controller.getActiveCard();
+                activeCollection.processNextCard();
+                Flashcard activeCard = activeCollection.getActiveCard();
                 if (activeCard == null)
                     return;
 
@@ -225,7 +188,7 @@ public class MainWindow extends JFrame {
                 setEnabledStates(false, false);
             }
             case FACE_UP -> {
-                setCardText(controller.getActiveCard().frontText());
+                setCardText(activeCollection.getActiveCard().frontText());
                 setEnabledStates(false, true);
             }
             case TO_DRAW -> {
@@ -233,30 +196,22 @@ public class MainWindow extends JFrame {
                 setEnabledStates(true, false);
                 refreshGroupView();
             }
+            case ABSENT -> {
+                setCardText("Select collection");
+                setPanelEnabled(pnView, false);
+                refreshGroupView();
+            }
             default -> throw new IllegalStateException("Unexpected value: " + state);
         }
         cardState = state;
     }
 
-    private void setCardText(String text) {
-        final float calcSize = TEXT_SIZE_FACTOR * (pnFlashcard.getWidth() - 2.0F * FLASHCARD_MARGIN) / text.length();
-        final float textSize = Math.min(calcSize, MAX_TEXT_SIZE);
-        lbWord.setText(text);
-        lbWord.setFont(lbWord.getFont().deriveFont(textSize));
-    }
-
-    private void setEnabledStates(boolean cardsChoice, boolean cardRedirection) {
-        btnPrepared.setEnabled(cardsChoice);
-        btnArchived.setEnabled(cardsChoice);
-        btnPassed.setEnabled(cardRedirection);
-        btnFailed.setEnabled(cardRedirection);
-    }
-
     private void chooseCardContainer(CardGroupChoice choice) {
-        if (controller.getCardGroupChoice() == choice || cardState != CardState.TO_DRAW)
-            return;
-
-        controller.setCardGroupChoice(choice);
+        if (activeCollection != null) {
+            if (activeCollection.getCardGroupChoice() == choice)
+                return;
+            activeCollection.setCardGroupChoice(choice);
+        }
 
         Color selectedColor = new Color(20, 100, 20);
         Color normalColor = new Color(20, 20, 20);
@@ -269,7 +224,7 @@ public class MainWindow extends JFrame {
                 btnPassed.setText("REMEMBERED");
                 btnFailed.setText("KEEP");
             }
-            case INBOX -> {
+            case INBOX, UNSELECTED -> {
                 btnPassed.setText("PASSED");
                 btnFailed.setText("FAILED");
             }
@@ -281,11 +236,149 @@ public class MainWindow extends JFrame {
         }
     }
 
-    private void openCreationDialog() {
-        new CreationDialog(controller).setVisible(true);
+    private void setEnabledStates(boolean cardGroupChoice, boolean cardRedirection) {
+        setPanelEnabled(pnOptions, cardGroupChoice);
+        setPanelEnabled(pnBox, cardGroupChoice);
+        setPanelEnabled(pnUnboxedCards, cardGroupChoice);
+        setPanelEnabled(pnButtons, cardRedirection);
+        setPanelEnabled(pnFlashcard, cardGroupChoice || !cardRedirection);
     }
 
-    private void openEditionDialog(String name) {
-        new EditionDialog(name, controller).setVisible(true);
+    private void setCardText(String text) {
+        final float calcSize = TEXT_SIZE_FACTOR * (pnFlashcard.getWidth() - 2.0F * FLASHCARD_MARGIN) / text.length();
+        final float textSize = Math.min(calcSize, MAX_TEXT_SIZE);
+        lbWord.setText(text);
+        lbWord.setFont(lbWord.getFont().deriveFont(textSize));
+    }
+
+    private void refreshCollectionList() {
+        Stream<String> names = collectionsManager.getCollectionNames();
+        if (names != null) {
+            cbxCollection.removeAllItems();
+            names.forEach(cbxCollection::addItem);
+        }
+    }
+
+    private void refreshGroupView() {
+        List<JLabel> sectionLabels = List.of(lbSection1, lbSection2, lbSection3, lbSection4, lbSection5);
+        List<Integer> sectionSizes = CardBox.sectionSizes();
+        final int numberOfPreparedCards;
+        final int numberOfArchivedCards;
+        List<Integer> sectionsFilling;
+
+        if (activeCollection == null) {
+            numberOfPreparedCards = 0;
+            numberOfArchivedCards = 0;
+            sectionsFilling = List.of(0, 0, 0, 0, 0);
+        } else {
+            numberOfPreparedCards = activeCollection.numberOfPreparedCards();
+            numberOfArchivedCards = activeCollection.numberOfArchivedCards();
+            sectionsFilling = activeCollection.boxSectionsFilling();
+        }
+
+        if (sectionLabels.size() != sectionsFilling.size()) {
+            handleError("Incorrect card box data!");
+            return;
+        }
+
+        btnPrepared.setText(String.valueOf(numberOfPreparedCards));
+        btnArchived.setText(String.valueOf(numberOfArchivedCards));
+
+        for (int i = 0; i < sectionLabels.size(); ++i) {
+            String text = String.valueOf(sectionsFilling.get(i)) + '/' + sectionSizes.get(i);
+            sectionLabels.get(i).setText(text);
+        }
+    }
+
+    private void setPanelEnabled(JPanel panel, Boolean isEnabled) {
+        panel.setEnabled(isEnabled);
+        java.awt.Component[] components = panel.getComponents();
+
+        for (java.awt.Component component : components) {
+            if (component instanceof JPanel) {
+                setPanelEnabled((JPanel) component, isEnabled);
+            }
+            component.setEnabled(isEnabled);
+        }
+    }
+
+    private void openCreationDialog() {
+        new CreationDialog(collectionsManager).setVisible(true);
+    }
+
+    private void openEditionDialog() {
+        new EditionDialog(activeCollection).setVisible(true);
+    }
+
+    private void addListeners() {
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                handleWindowClosing();
+                super.windowClosing(e);
+            }
+        });
+        btnNew.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleNewClicked();
+            }
+        });
+        btnEdit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleEditClicked();
+            }
+        });
+        btnDelete.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleDeleteClicked();
+            }
+        });
+        cbxCollection.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleCollectionChanged();
+            }
+        });
+        pnFlashcard.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                handleCardClicked();
+            }
+        });
+        btnPassed.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handlePassedClicked();
+            }
+        });
+        btnFailed.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleFailedClicked();
+            }
+        });
+        btnPrepared.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handlePreparedClicked();
+            }
+        });
+        btnArchived.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleArchivedClicked();
+            }
+        });
+        pnBox.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                handleBoxClicked();
+            }
+        });
     }
 }
