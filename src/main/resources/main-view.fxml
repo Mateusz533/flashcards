@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
@@ -10,9 +11,9 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="570.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/20.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.mateuszfrejlich.flashcards.controllers.MainController">
+<BorderPane prefHeight="570.0" prefWidth="800.0" style="-fx-background-color: #dca;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.mateuszfrejlich.flashcards.controllers.MainController">
    <top>
-      <GridPane fx:id="pnOptions" alignment="TOP_CENTER" hgap="20.0" prefHeight="30.0" BorderPane.alignment="TOP_CENTER">
+      <GridPane fx:id="pnOptions" alignment="TOP_CENTER" hgap="20.0" prefHeight="35.0" BorderPane.alignment="TOP_CENTER">
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -23,25 +24,37 @@
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleNewClicked" text="New ..." GridPane.halignment="CENTER" />
-            <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleEditClicked" text="Edit" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
-            <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleDeleteClicked" text="Delete" GridPane.columnIndex="2" GridPane.halignment="CENTER">
+            <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleNewClicked" style="-fx-background-color: #eee; -fx-background-radius: 10;" text="New ..." GridPane.halignment="CENTER" GridPane.vgrow="SOMETIMES">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
+            <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleEditClicked" style="-fx-background-color: #eee; -fx-background-radius: 10;" text="Edit" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.vgrow="SOMETIMES">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
+            <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleDeleteClicked" style="-fx-background-color: #eee; -fx-background-radius: 10;" text="Delete" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.vgrow="SOMETIMES">
                <opaqueInsets>
                   <Insets />
                </opaqueInsets>
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
             </Button>
-            <ComboBox fx:id="cbxCollection" maxWidth="1.7976931348623157E308" onAction="#handleCollectionChanged" GridPane.columnIndex="3" GridPane.halignment="CENTER" />
+            <ComboBox fx:id="cbxCollection" maxWidth="1.7976931348623157E308" onAction="#handleCollectionChanged" style="-fx-background-color: #eee; -fx-background-radius: 10;" GridPane.columnIndex="3" GridPane.halignment="CENTER">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></ComboBox>
          </children>
          <BorderPane.margin>
-            <Insets />
+            <Insets top="15.0" />
          </BorderPane.margin>
          <padding>
-            <Insets bottom="15.0" left="15.0" right="15.0" top="20.0" />
+            <Insets bottom="5.0" left="15.0" right="15.0" top="5.0" />
          </padding>
       </GridPane>
    </top>
    <center>
-      <GridPane prefHeight="198.0" prefWidth="578.0" BorderPane.alignment="CENTER">
+      <GridPane hgap="10.0" prefHeight="198.0" prefWidth="578.0" BorderPane.alignment="CENTER">
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" maxWidth="500.0" minWidth="200.0" percentWidth="33.0" prefWidth="500.0" />
           <ColumnConstraints hgrow="SOMETIMES" maxWidth="1500.0" minWidth="500.0" percentWidth="67.0" prefWidth="1000.0" />
@@ -50,19 +63,19 @@
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <GridPane fx:id="pnBox" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="460.0" minWidth="160.0" onMouseClicked="#handleBoxClicked" prefWidth="160.0" style="-fx-border-color: black;" vgap="7.5" GridPane.vgrow="ALWAYS">
+            <GridPane fx:id="pnBox" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="460.0" minWidth="160.0" onMouseClicked="#handleBoxClicked" prefWidth="160.0" style="-fx-background-color: #55f; -fx-border-color: #55f; -fx-border-radius: 10; -fx-background-radius: 8;" vgap="7.5" GridPane.vgrow="ALWAYS">
               <columnConstraints>
                 <ColumnConstraints maxWidth="1.7976931348623157E308" minWidth="100.0" prefWidth="500.0" />
               </columnConstraints>
               <rowConstraints>
-                <RowConstraints maxHeight="1.7976931348623157E308" minHeight="50.0" vgrow="ALWAYS" />
-                <RowConstraints maxHeight="1.7976931348623157E308" minHeight="50.0" vgrow="ALWAYS" />
-                  <RowConstraints maxHeight="1.7976931348623157E308" minHeight="50.0" vgrow="ALWAYS" />
-                  <RowConstraints maxHeight="1.7976931348623157E308" minHeight="50.0" vgrow="ALWAYS" />
-                  <RowConstraints maxHeight="1.7976931348623157E308" minHeight="50.0" vgrow="ALWAYS" />
+                <RowConstraints maxHeight="1.7976931348623157E308" minHeight="40.0" percentHeight="10.0" vgrow="ALWAYS" />
+                <RowConstraints maxHeight="1.7976931348623157E308" minHeight="40.0" percentHeight="15.0" vgrow="ALWAYS" />
+                  <RowConstraints maxHeight="1.7976931348623157E308" minHeight="40.0" percentHeight="20.0" vgrow="ALWAYS" />
+                  <RowConstraints maxHeight="1.7976931348623157E308" minHeight="40.0" percentHeight="25.0" vgrow="ALWAYS" />
+                  <RowConstraints maxHeight="1.7976931348623157E308" minHeight="40.0" percentHeight="30.0" vgrow="ALWAYS" />
               </rowConstraints>
                <children>
-                  <GridPane style="-fx-border-color: black;" GridPane.halignment="CENTER">
+                  <GridPane style="-fx-border-color: #55f; -fx-background-color: #d55; -fx-background-radius: 5;" GridPane.halignment="CENTER">
                      <columnConstraints>
                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                      </columnConstraints>
@@ -72,7 +85,7 @@
                      <children>
                         <Label fx:id="lbSection1" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="106.0" prefWidth="514.0" text="0/50" textAlignment="CENTER">
                            <font>
-                              <Font size="26.0" />
+                              <Font size="24.0" />
                            </font>
                         </Label>
                      </children>
@@ -80,7 +93,7 @@
                         <Insets bottom="5.0" left="25.0" right="25.0" top="5.0" />
                      </padding>
                   </GridPane>
-                  <GridPane style="-fx-border-color: black;" GridPane.halignment="CENTER" GridPane.rowIndex="1">
+                  <GridPane style="-fx-border-color: #55f; -fx-background-color: #d74; -fx-background-radius: 5;" GridPane.halignment="CENTER" GridPane.rowIndex="1">
                      <columnConstraints>
                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                      </columnConstraints>
@@ -90,7 +103,7 @@
                      <children>
                         <Label fx:id="lbSection2" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="106.0" prefWidth="562.0" text="0/70" textAlignment="CENTER">
                            <font>
-                              <Font size="26.0" />
+                              <Font size="24.0" />
                            </font>
                         </Label>
                      </children>
@@ -98,7 +111,7 @@
                         <Insets bottom="5.0" left="25.0" right="25.0" top="5.0" />
                      </padding>
                   </GridPane>
-                  <GridPane style="-fx-border-color: black;" GridPane.halignment="CENTER" GridPane.rowIndex="2">
+                  <GridPane style="-fx-border-color: #55f; -fx-background-color: #fa5; -fx-background-radius: 5;" GridPane.halignment="CENTER" GridPane.rowIndex="2">
                      <columnConstraints>
                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                      </columnConstraints>
@@ -108,7 +121,7 @@
                      <children>
                         <Label fx:id="lbSection3" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="106.0" prefWidth="550.0" text="0/95" textAlignment="CENTER">
                            <font>
-                              <Font size="26.0" />
+                              <Font size="24.0" />
                            </font>
                         </Label>
                      </children>
@@ -116,7 +129,7 @@
                         <Insets bottom="5.0" left="25.0" right="25.0" top="5.0" />
                      </padding>
                   </GridPane>
-                  <GridPane style="-fx-border-color: black;" GridPane.halignment="CENTER" GridPane.rowIndex="3">
+                  <GridPane style="-fx-border-color: #55f; -fx-background-color: #fd6; -fx-background-radius: 5;" GridPane.halignment="CENTER" GridPane.rowIndex="3">
                      <columnConstraints>
                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                      </columnConstraints>
@@ -126,7 +139,7 @@
                      <children>
                         <Label fx:id="lbSection4" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="106.0" prefWidth="624.0" text="0/130" textAlignment="CENTER">
                            <font>
-                              <Font size="26.0" />
+                              <Font size="24.0" />
                            </font>
                         </Label>
                      </children>
@@ -134,7 +147,7 @@
                         <Insets bottom="5.0" left="25.0" right="25.0" top="5.0" />
                      </padding>
                   </GridPane>
-                  <GridPane style="-fx-border-color: black;" GridPane.halignment="CENTER" GridPane.rowIndex="4">
+                  <GridPane style="-fx-border-color: #55f; -fx-background-color: #4a7; -fx-background-radius: 5;" GridPane.halignment="CENTER" GridPane.rowIndex="4">
                      <columnConstraints>
                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                      </columnConstraints>
@@ -144,7 +157,7 @@
                      <children>
                         <Label fx:id="lbSection5" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="105.0" prefWidth="492.0" text="0/155" textAlignment="CENTER">
                            <font>
-                              <Font size="26.0" />
+                              <Font size="24.0" />
                            </font>
                         </Label>
                      </children>
@@ -159,8 +172,11 @@
                <GridPane.margin>
                   <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                </GridPane.margin>
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
             </GridPane>
-            <GridPane vgap="40.0" GridPane.columnIndex="1">
+            <GridPane vgap="30.0" GridPane.columnIndex="1">
               <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
               </columnConstraints>
@@ -170,7 +186,7 @@
                 <RowConstraints maxHeight="-Infinity" minHeight="50.0" prefHeight="50.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <GridPane fx:id="pnFlashcard" onMouseClicked="#handleCardClicked" style="-fx-border-color: black;">
+                  <GridPane fx:id="pnFlashcard" onMouseClicked="#handleCardClicked" style="-fx-background-color: #595; -fx-background-radius: 50; -fx-border-color: #eee; -fx-border-width: 20; -fx-border-radius: 30;">
                      <columnConstraints>
                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                      </columnConstraints>
@@ -178,7 +194,7 @@
                         <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                      </rowConstraints>
                      <children>
-                        <Label fx:id="lbWord" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Get next" textAlignment="CENTER">
+                        <Label fx:id="lbWord" alignment="CENTER" text="Get next" textAlignment="CENTER" textFill="#eeeeee" wrapText="true" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
                            <font>
                               <Font size="48.0" />
                            </font>
@@ -187,6 +203,9 @@
                      <padding>
                         <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
                      </padding>
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
                   </GridPane>
                   <GridPane fx:id="pnButtons" hgap="50.0" maxHeight="50.0" minHeight="50.0" prefHeight="50.0" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
                     <columnConstraints>
@@ -197,14 +216,20 @@
                       <RowConstraints maxHeight="-Infinity" minHeight="0.0" prefHeight="50.0" vgrow="SOMETIMES" />
                     </rowConstraints>
                      <children>
-                        <Button fx:id="btnPassed" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handlePassedClicked" text="PASSED" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
-                        <Button fx:id="btnFailed" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleFailedClicked" text="FAILED" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+                        <Button fx:id="btnPassed" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handlePassedClicked" style="-fx-background-color: #eee; -fx-background-radius: 20;" text="PASSED" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor></Button>
+                        <Button fx:id="btnFailed" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleFailedClicked" style="-fx-background-color: #eee; -fx-background-radius: 20;" text="FAILED" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor></Button>
                      </children>
                      <padding>
                         <Insets left="25.0" right="25.0" />
                      </padding>
                   </GridPane>
-                  <GridPane fx:id="pnUnboxedCards" hgap="40.0" maxHeight="50.0" minHeight="50.0" prefHeight="50.0" style="-fx-border-color: black; -fx-border-width: 0.5;" GridPane.rowIndex="2">
+                  <GridPane fx:id="pnUnboxedCards" hgap="40.0" maxHeight="50.0" minHeight="50.0" prefHeight="50.0" style="-fx-border-color: #555; -fx-border-radius: 15; -fx-border-width: 0.5;" GridPane.rowIndex="2">
                     <columnConstraints>
                       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -215,33 +240,39 @@
                      <children>
                         <GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                            <columnConstraints>
-                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="10.0" prefWidth="90.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="10.0" prefWidth="80.0" />
                               <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="100.0" />
                            </columnConstraints>
                            <rowConstraints>
                               <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                            </rowConstraints>
                            <children>
-                              <Button fx:id="btnPrepared" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handlePreparedClicked" text="0" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
-                              <Label fx:id="lbPrepared" text="Prepared:" />
+                              <Button fx:id="btnPrepared" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handlePreparedClicked" style="-fx-background-color: #eee; -fx-background-radius: 10;" text="0" GridPane.columnIndex="1" GridPane.halignment="CENTER">
+                                 <cursor>
+                                    <Cursor fx:constant="HAND" />
+                                 </cursor></Button>
+                              <Label text="Prepared:" />
                            </children>
                         </GridPane>
                         <GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1">
                            <columnConstraints>
-                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="10.0" prefWidth="90.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="10.0" prefWidth="80.0" />
                               <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="100.0" />
                            </columnConstraints>
                            <rowConstraints>
                               <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                            </rowConstraints>
                            <children>
-                              <Button fx:id="btnArchived" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleArchivedClicked" text="0" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
-                              <Label fx:id="lbArchived" text="Archived:" />
+                              <Button fx:id="btnArchived" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleArchivedClicked" style="-fx-background-color: #eee; -fx-background-radius: 10;" text="0" GridPane.columnIndex="1" GridPane.halignment="CENTER">
+                                 <cursor>
+                                    <Cursor fx:constant="HAND" />
+                                 </cursor></Button>
+                              <Label text="Archived:" />
                            </children>
                         </GridPane>
                      </children>
                      <padding>
-                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                      </padding>
                   </GridPane>
                </children>
@@ -249,7 +280,7 @@
                   <Insets />
                </GridPane.margin>
                <padding>
-                  <Insets bottom="30.0" left="50.0" right="50.0" top="30.0" />
+                  <Insets bottom="20.0" left="30.0" right="30.0" top="20.0" />
                </padding>
             </GridPane>
          </children>

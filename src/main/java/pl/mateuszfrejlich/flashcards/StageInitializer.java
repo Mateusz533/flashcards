@@ -33,7 +33,9 @@ public class StageInitializer implements ApplicationListener<StageReadyEvent> {
             Parent parent = fxmlLoader.load();
 
             Stage stage = event.getStage();
-            stage.setScene(new Scene(parent, 800, 600));
+            stage.setScene(new Scene(parent, 800, 570));
+            stage.setMinWidth(800);
+            stage.setMinHeight(600);
             stage.setTitle("Flashcards");
 
             MainController controller = applicationContext.getBean(MainController.class);

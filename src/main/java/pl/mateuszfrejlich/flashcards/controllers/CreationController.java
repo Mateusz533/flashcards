@@ -27,7 +27,7 @@ public class CreationController {
     }
 
     @FXML
-    void handleOK(ActionEvent event) {
+    void handleOK(ActionEvent ignoredEvent) {
         final boolean created = addNewCollection();
 
         if (created)
@@ -41,17 +41,17 @@ public class CreationController {
     }
 
     @FXML
-    void handleCancel(ActionEvent event) {
+    void handleCancel(ActionEvent ignoredEvent) {
         cbEmpty.getScene().getWindow().hide();
     }
 
     @FXML
-    void handlePathClicked(ActionEvent event) {
+    void handlePathClicked(ActionEvent ignoredEvent) {
         useFileChoiceDialog();
     }
 
     @FXML
-    void handleCheckChanged(ActionEvent event) {
+    void handleCheckChanged(ActionEvent ignoredEvent) {
         setEnabledPathInput(!cbEmpty.isSelected());
     }
 

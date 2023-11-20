@@ -3,19 +3,16 @@ package pl.mateuszfrejlich.flashcards.controllers;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -29,20 +26,12 @@ import java.util.stream.Stream;
 
 @Component
 public class MainController {
-    private static final double TEXT_SIZE_FACTOR = 0.69;
-    private static final double MAX_TEXT_SIZE = 48.0;
     private CardCollection activeCollection = null;
     private CollectionsManager collectionsManager;
     private CardState cardState = CardState.ABSENT;
 
     @FXML
     private ComboBox<String> cbxCollection;
-
-    @FXML
-    private Label lbPrepared;
-
-    @FXML
-    private Label lbArchived;
 
     @FXML
     private Button btnPrepared;
@@ -89,29 +78,18 @@ public class MainController {
     @FXML
     private GridPane pnUnboxedCards;
 
-    public MainController() {
-        try {
-            collectionsManager = new CollectionsManager();
-        } catch (Exception e) {
-            handleError(e.getMessage());
-            pnOptions.getScene().getWindow().hide();
-        }
-    }
-
     public void setup(Stage stage) {
-        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent windowEvent) {
-                handleOnCloseRequest(windowEvent);
-            }
-        });
+        stage.setOnCloseRequest(this::handleOnCloseRequest);
 
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                setCardState(CardState.ABSENT);
-                refreshCollectionList();
+        Platform.runLater(() -> {
+            try {
+                collectionsManager = new CollectionsManager();
+            } catch (Exception e) {
+                handleError(e.getMessage());
+                pnOptions.getScene().getWindow().hide();
             }
+            setCardState(CardState.ABSENT);
+            refreshCollectionList();
         });
     }
 
@@ -127,14 +105,14 @@ public class MainController {
     }
 
     @FXML
-    void handleNewClicked(ActionEvent event) {
+    void handleNewClicked(ActionEvent ignoredEvent) {
         openCreationDialog();
         cbxCollection.getItems().clear();
         refreshCollectionList();
     }
 
     @FXML
-    void handleEditClicked(ActionEvent event) {
+    void handleEditClicked(ActionEvent ignoredEvent) {
         if (activeCollection == null)
             handleError("No collection selected!");
         else
@@ -142,7 +120,7 @@ public class MainController {
     }
 
     @FXML
-    void handleDeleteClicked(ActionEvent event) {
+    void handleDeleteClicked(ActionEvent ignoredEvent) {
         if (activeCollection == null) {
             handleError("No collection selected!");
             return;
@@ -162,7 +140,7 @@ public class MainController {
     }
 
     @FXML
-    void handleCollectionChanged(ActionEvent event) {
+    void handleCollectionChanged(ActionEvent ignoredEvent) {
         if (activeCollection != null)
             activeCollection.saveChanges();
 
@@ -179,7 +157,7 @@ public class MainController {
     }
 
     @FXML
-    void handleCardClicked(MouseEvent event) {
+    void handleCardClicked(MouseEvent ignoredEvent) {
         switch (cardState) {
             case TO_DRAW -> setCardState(CardState.REVERSED);
             case REVERSED -> setCardState(CardState.FACE_UP);
@@ -191,31 +169,31 @@ public class MainController {
     }
 
     @FXML
-    void handlePreparedClicked(ActionEvent event) {
+    void handlePreparedClicked(ActionEvent ignoredEvent) {
         if (cardState == CardState.TO_DRAW)
             chooseCardContainer(CardGroupChoice.PREPARED);
     }
 
     @FXML
-    void handleArchivedClicked(ActionEvent event) {
+    void handleArchivedClicked(ActionEvent ignoredEvent) {
         if (cardState == CardState.TO_DRAW)
             chooseCardContainer(CardGroupChoice.ARCHIVED);
     }
 
     @FXML
-    void handleBoxClicked(MouseEvent event) {
+    void handleBoxClicked(MouseEvent ignoredEvent) {
         if (cardState == CardState.TO_DRAW)
             chooseCardContainer(CardGroupChoice.INBOX);
     }
 
     @FXML
-    void handlePassedClicked(ActionEvent event) {
+    void handlePassedClicked(ActionEvent ignoredEvent) {
         activeCollection.putBorrowedCard(true);
         setCardState(CardState.TO_DRAW);
     }
 
     @FXML
-    void handleFailedClicked(ActionEvent event) {
+    void handleFailedClicked(ActionEvent ignoredEvent) {
         activeCollection.putBorrowedCard(false);
         setCardState(CardState.TO_DRAW);
     }
@@ -274,13 +252,11 @@ public class MainController {
             activeCollection.setCardGroupChoice(choice);
         }
 
-        Color selectedColor = new Color(20. / 255, 100. / 255, 20. / 255, 1);
-        Color normalColor = new Color(20. / 255, 20. / 255, 20. / 255, 1);
-        lbPrepared.setTextFill(choice == CardGroupChoice.PREPARED ? selectedColor : normalColor);
-        lbArchived.setTextFill(choice == CardGroupChoice.ARCHIVED ? selectedColor : normalColor);
-        BorderStroke bs = pnBox.getBorder().getStrokes().get(0);
-        Color borderColor = choice == CardGroupChoice.INBOX ? selectedColor : normalColor;
-        pnBox.setBorder(new Border(new BorderStroke(borderColor, bs.getTopStyle(), bs.getRadii(), bs.getWidths())));
+        String colorSelected = "#9e9";
+        String colorNormal = "#eee";
+        setButtonColor(btnPrepared, (choice == CardGroupChoice.PREPARED) ? colorSelected : colorNormal);
+        setButtonColor(btnArchived, (choice == CardGroupChoice.ARCHIVED) ? colorSelected : colorNormal);
+        pnBox.setOpacity(choice == CardGroupChoice.INBOX ? 1.0 : 0.5);
 
         switch (choice) {
             case PREPARED -> {
@@ -307,13 +283,15 @@ public class MainController {
         pnFlashcard.setDisable(!cardGroupChoice && cardRedirection);
     }
 
+    private void setButtonColor(Button button, String color) {
+        BackgroundFill bg = button.getBackground().getFills().get(0);
+        button.setStyle("{}");
+        BackgroundFill fill = new BackgroundFill(Color.valueOf(color), bg.getRadii(), bg.getInsets());
+        button.setBackground(new Background(fill));
+    }
+
     private void setCardText(String text) {
-        Insets insets = pnFlashcard.getPadding();
-        final double maxWidth = pnFlashcard.getWidth() - insets.getLeft() - insets.getRight();
-        final double calcSize = TEXT_SIZE_FACTOR * maxWidth / text.length();
-        final double textSize = Math.min(calcSize, MAX_TEXT_SIZE);
         lbWord.setText(text);
-        lbWord.setFont(new Font(textSize));
     }
 
     private void refreshCollectionList() {

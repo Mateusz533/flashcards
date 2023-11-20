@@ -35,29 +35,26 @@ public class EditionController {
 
     public void setup(CardCollection cardCollection) {
         this.cardCollection = cardCollection;
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                pnForm.setText(cardCollection.getName());
-                editor = cardCollection.createEditor();
-                refreshWordList();
-            }
+        Platform.runLater(() -> {
+            pnForm.setText(cardCollection.getName());
+            editor = cardCollection.createEditor();
+            refreshWordList();
         });
     }
 
     @FXML
-    void handleOK(ActionEvent event) {
+    void handleOK(ActionEvent ignoredEvent) {
         cardCollection.executeEdition(editor);
         pnForm.getScene().getWindow().hide();
     }
 
     @FXML
-    void handleCancel(ActionEvent event) {
+    void handleCancel(ActionEvent ignoredEvent) {
         pnForm.getScene().getWindow().hide();
     }
 
     @FXML
-    void handleAddClicked(ActionEvent event) {
+    void handleAddClicked(ActionEvent ignoredEvent) {
         Flashcard card = new Flashcard(tfFront.getText().trim(), tfReverse.getText().trim());
         final boolean updated = editor.addCard(card);
 
@@ -68,7 +65,7 @@ public class EditionController {
     }
 
     @FXML
-    void handleUpdateClicked(ActionEvent event) {
+    void handleUpdateClicked(ActionEvent ignoredEvent) {
         final int index = cbxItem.getSelectionModel().getSelectedIndex();
 
         if (index == -1)
@@ -78,7 +75,7 @@ public class EditionController {
     }
 
     @FXML
-    void handleDeleteClicked(ActionEvent event) {
+    void handleDeleteClicked(ActionEvent ignoredEvent) {
         final int index = cbxItem.getSelectionModel().getSelectedIndex();
 
         if (index == -1)
@@ -91,12 +88,12 @@ public class EditionController {
     }
 
     @FXML
-    void handleItemSelected(ActionEvent event) {
+    void handleItemSelected(ActionEvent ignoredEvent) {
         fillTextFields();
     }
 
     @FXML
-    void handleSwapSidesClicked(ActionEvent event) {
+    void handleSwapSidesClicked(ActionEvent ignoredEvent) {
         isSwapped = !isSwapped;
         refreshWordList();
     }
