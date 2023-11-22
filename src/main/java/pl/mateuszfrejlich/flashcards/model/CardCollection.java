@@ -1,25 +1,40 @@
-package pl.mateuszfrejlich.flashcards;
+package pl.mateuszfrejlich.flashcards.model;
 
 import java.util.List;
 import java.util.stream.Stream;
 
 public class CardCollection {
-    private final DataBaseAdapter dbAdapter;
     private final String name;
-    private CardQueue preparedCards = null;
-    private CardBox cardBox = null;
-    private CardQueue archivedCards = null;
+    private final CardBox cardBox;
+    private final CardQueue archivedCards;
+    private CardQueue preparedCards;
     private Flashcard activeCard = null;
     private CardGroupChoice cardGroupChoice = CardGroupChoice.UNSELECTED;
 
-    public CardCollection(DataBaseAdapter dbAdapter, String name) {
-        this.dbAdapter = dbAdapter;
+    public CardCollection(String name,
+                          Stream<Flashcard> preparedCards,
+                          Stream<Flashcard> archivedCards,
+                          List<Stream<Flashcard>> cardBoxSections) {
         this.name = name;
-        fetchData();
+        this.preparedCards = new CardQueue(preparedCards);
+        this.archivedCards = new CardQueue(archivedCards);
+        cardBox = new CardBox(this.archivedCards, cardBoxSections);
     }
 
     public String getName() {
         return name;
+    }
+
+    public List<Stream<Flashcard>> getCardBoxSections() {
+        return cardBox.getSections();
+    }
+
+    public Stream<Flashcard> getArchivedCards() {
+        return archivedCards.getCards();
+    }
+
+    public Stream<Flashcard> getPreparedCards() {
+        return preparedCards.getCards();
     }
 
     public Flashcard getActiveCard() {
@@ -38,12 +53,12 @@ public class CardCollection {
         return (preparedCards != null) ? preparedCards.size() : 0;
     }
 
-    public List<Integer> boxSectionsFilling() {
-        return (cardBox != null) ? cardBox.sectionsFilling() : List.of(0, 0, 0, 0, 0);
+    public int numberOfArchivedCards() {
+        return archivedCards.size();
     }
 
-    public int numberOfArchivedCards() {
-        return (archivedCards != null) ? archivedCards.size() : 0;
+    public List<Integer> boxSectionsFilling() {
+        return cardBox.sectionsFilling();
     }
 
     public CollectionEditor createEditor() {
@@ -80,26 +95,5 @@ public class CardCollection {
             }
             default -> throw new IllegalStateException("Unexpected value: " + cardGroupChoice);
         }
-    }
-
-    public void saveChanges() {
-        dbAdapter.updatePreparedCardsCollection(name, preparedCards.getCards());
-        dbAdapter.updateArchivedCardsCollection(name, archivedCards.getCards());
-        dbAdapter.updateInboxCardsCollection(name, cardBox.getSections());
-    }
-
-    private void fetchData() {
-        Stream<Flashcard> preparedCards = dbAdapter.getPreparedCards(name);
-        Stream<Flashcard> archivedCards = dbAdapter.getArchivedCards(name);
-        List<Stream<Flashcard>> cardBoxSections = dbAdapter.getCardBoxSections(name);
-
-        if (preparedCards == null || archivedCards == null || cardBoxSections == null) {
-            System.out.println("Fetching data error!");
-            return;
-        }
-
-        this.preparedCards = new CardQueue(preparedCards);
-        this.archivedCards = new CardQueue(archivedCards);
-        cardBox = new CardBox(this.archivedCards, cardBoxSections);
     }
 }

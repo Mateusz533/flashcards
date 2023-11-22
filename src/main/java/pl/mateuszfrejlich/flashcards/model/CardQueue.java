@@ -1,4 +1,4 @@
-package pl.mateuszfrejlich.flashcards;
+package pl.mateuszfrejlich.flashcards.model;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -12,7 +12,7 @@ public class CardQueue extends CardGroup {
         this.cards = cards.collect(Collectors.toCollection(ArrayDeque::new));
     }
 
-    int size() {
+    public int size() {
         return cards.size();
     }
 

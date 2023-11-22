@@ -1,17 +1,28 @@
-package pl.mateuszfrejlich.flashcards;
+package pl.mateuszfrejlich.flashcards.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import pl.mateuszfrejlich.flashcards.model.CardCollection;
+import pl.mateuszfrejlich.flashcards.dao.DataBaseAdapter;
+import pl.mateuszfrejlich.flashcards.model.Flashcard;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Stream;
 
+@Service
 public class CollectionsManager {
-    private final DataBaseAdapter dbAdapter;
+    @Autowired
+    @Qualifier("mySQL")
+    private DataBaseAdapter dbAdapter;
 
-    public CollectionsManager() throws SQLException {
-        this.dbAdapter = new DataBaseAdapter();
+    public void setupDBConnection() throws SQLException {
+        dbAdapter.openConnection();
     }
 
     public Stream<String> getCollectionNames() {
@@ -19,7 +30,14 @@ public class CollectionsManager {
     }
 
     public CardCollection getCollection(String name) {
-        return new CardCollection(dbAdapter, name);
+        Stream<Flashcard> preparedCards = dbAdapter.getPreparedCards(name);
+        Stream<Flashcard> archivedCards = dbAdapter.getArchivedCards(name);
+        List<Stream<Flashcard>> cardBoxSections = dbAdapter.getCardBoxSections(name);
+
+        if (preparedCards == null || archivedCards == null || cardBoxSections == null)
+            return null;
+
+        return new CardCollection(name, preparedCards, archivedCards, cardBoxSections);
     }
 
     public boolean addNewCollection(String name) {
@@ -42,11 +60,15 @@ public class CollectionsManager {
         return dbAdapter.createNewCollection(name, stream);
     }
 
-    public boolean deleteCollection(String collectionName) {
-        if (!dbAdapter.deleteCollection(collectionName))
-            return false;
+    public void updateCardsCollection(CardCollection cardCollection) {
+        String name = cardCollection.getName();
+        dbAdapter.updatePreparedCardsCollection(name, cardCollection.getPreparedCards());
+        dbAdapter.updateArchivedCardsCollection(name, cardCollection.getArchivedCards());
+        dbAdapter.updateInboxCardsCollection(name, cardCollection.getCardBoxSections());
+    }
 
-        return true;
+    public boolean deleteCollection(String collectionName) {
+        return dbAdapter.deleteCollection(collectionName);
     }
 
     private boolean getDataFromFile(String path, ArrayList<Flashcard> list) {

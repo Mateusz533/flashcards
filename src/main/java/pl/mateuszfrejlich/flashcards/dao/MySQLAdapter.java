@@ -1,11 +1,15 @@
-package pl.mateuszfrejlich.flashcards;
+package pl.mateuszfrejlich.flashcards.dao;
+
+import org.springframework.stereotype.Repository;
+import pl.mateuszfrejlich.flashcards.model.Flashcard;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class DataBaseAdapter {
+@Repository("mySQL")
+public class MySQLAdapter implements DataBaseAdapter {
     private static final String SCHEMA_NAME = "flashcard-collection";
     private static final String DB_URL = "jdbc:mysql://localhost/" + SCHEMA_NAME;
     private static final String USERNAME = "guest";
@@ -13,9 +17,10 @@ public class DataBaseAdapter {
     private static final String PREPARED_CARDS_SUFFIX = "-pre";
     private static final String ARCHIVED_CARDS_SUFFIX = "-arch";
     private static final List<String> SECTION_SUFFIXES = List.of("-sec-1", "-sec-2", "-sec-3", "-sec-4", "-sec-5");
-    private final Statement statement;
+    private Statement statement = null;
 
-    DataBaseAdapter() throws SQLException {
+    @Override
+    public void openConnection() throws SQLException {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (Exception e) {
@@ -25,6 +30,7 @@ public class DataBaseAdapter {
         statement = connection.createStatement();
     }
 
+    @Override
     public Stream<String> getCollectionNames() {
         List<String> names = new ArrayList<>();
         String query = "SHOW TABLES FROM `" + SCHEMA_NAME + "`;";
@@ -43,14 +49,17 @@ public class DataBaseAdapter {
                 .map(s -> s.substring(0, s.length() - PREPARED_CARDS_SUFFIX.length()));
     }
 
+    @Override
     public Stream<Flashcard> getPreparedCards(String collectionName) {
         return getCards(collectionName + PREPARED_CARDS_SUFFIX);
     }
 
+    @Override
     public Stream<Flashcard> getArchivedCards(String collectionName) {
         return getCards(collectionName + ARCHIVED_CARDS_SUFFIX);
     }
 
+    @Override
     public List<Stream<Flashcard>> getCardBoxSections(String collectionName) {
         ArrayList<Stream<Flashcard>> sections = new ArrayList<>(5);
 
@@ -65,20 +74,24 @@ public class DataBaseAdapter {
         return sections;
     }
 
+    @Override
     public void updatePreparedCardsCollection(String selectedCollectionName, Stream<Flashcard> stream) {
         overrideTable(selectedCollectionName + PREPARED_CARDS_SUFFIX, stream);
     }
 
+    @Override
     public void updateArchivedCardsCollection(String selectedCollectionName, Stream<Flashcard> stream) {
         overrideTable(selectedCollectionName + ARCHIVED_CARDS_SUFFIX, stream);
     }
 
+    @Override
     public void updateInboxCardsCollection(String selectedCollectionName, List<Stream<Flashcard>> sections) {
         for (int i = 0; i < SECTION_SUFFIXES.size(); ++i) {
             overrideTable(selectedCollectionName + SECTION_SUFFIXES.get(i), sections.get(i));
         }
     }
 
+    @Override
     public boolean createNewCollection(String name, Stream<Flashcard> initialData) {
         for (String suffix : allSuffixes()) {
             String query = getCreateTableQuery(name + suffix);
@@ -89,6 +102,7 @@ public class DataBaseAdapter {
         return (initialData == null) || fillTable(name + PREPARED_CARDS_SUFFIX, initialData);
     }
 
+    @Override
     public boolean deleteCollection(String name) {
         if (name == null)
             return false;
@@ -173,3 +187,4 @@ public class DataBaseAdapter {
         }
     }
 }
+

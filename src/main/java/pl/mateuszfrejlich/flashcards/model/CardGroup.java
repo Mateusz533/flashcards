@@ -1,4 +1,4 @@
-package pl.mateuszfrejlich.flashcards;
+package pl.mateuszfrejlich.flashcards.model;
 
 public abstract class CardGroup {
     protected Flashcard lentCard = null;

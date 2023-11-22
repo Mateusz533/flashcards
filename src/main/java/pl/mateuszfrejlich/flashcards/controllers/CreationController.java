@@ -4,12 +4,11 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
-import pl.mateuszfrejlich.flashcards.CollectionsManager;
+import pl.mateuszfrejlich.flashcards.service.CollectionsManager;
 
 import java.io.File;
 
 public class CreationController {
-
     private CollectionsManager collectionsManager;
     @FXML
     private TextField tfName;

@@ -16,65 +16,53 @@ import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import org.springframework.stereotype.Component;
-import pl.mateuszfrejlich.flashcards.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import pl.mateuszfrejlich.flashcards.model.*;
+import pl.mateuszfrejlich.flashcards.service.CollectionsManager;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Component
+@Controller
 public class MainController {
-    private CardCollection activeCollection = null;
+    @Autowired
     private CollectionsManager collectionsManager;
+    private CardCollection activeCollection = null;
     private CardState cardState = CardState.ABSENT;
 
     @FXML
     private ComboBox<String> cbxCollection;
-
     @FXML
     private Button btnPrepared;
-
     @FXML
     private Button btnArchived;
-
     @FXML
     private Button btnPassed;
-
     @FXML
     private Button btnFailed;
-
     @FXML
     private Label lbSection1;
-
     @FXML
     private Label lbSection2;
-
     @FXML
     private Label lbSection3;
-
     @FXML
     private Label lbSection4;
-
     @FXML
     private Label lbSection5;
-
     @FXML
     private Label lbWord;
-
     @FXML
     private GridPane pnOptions;
-
     @FXML
     private GridPane pnBox;
-
     @FXML
     private GridPane pnFlashcard;
-
     @FXML
     private GridPane pnButtons;
-
     @FXML
     private GridPane pnUnboxedCards;
 
@@ -83,7 +71,7 @@ public class MainController {
 
         Platform.runLater(() -> {
             try {
-                collectionsManager = new CollectionsManager();
+                collectionsManager.setupDBConnection();
             } catch (Exception e) {
                 handleError(e.getMessage());
                 pnOptions.getScene().getWindow().hide();
@@ -101,7 +89,7 @@ public class MainController {
         if (activeCollection.getActiveCard() != null)
             activeCollection.putBorrowedCard(false);
 
-        activeCollection.saveChanges();
+        collectionsManager.updateCardsCollection(activeCollection);
     }
 
     @FXML
@@ -142,14 +130,19 @@ public class MainController {
     @FXML
     void handleCollectionChanged(ActionEvent ignoredEvent) {
         if (activeCollection != null)
-            activeCollection.saveChanges();
+            collectionsManager.updateCardsCollection(activeCollection);
 
         String selectedCollection = cbxCollection.getValue();
         chooseCardContainer(CardGroupChoice.UNSELECTED);
 
         if (selectedCollection != null) {
             activeCollection = collectionsManager.getCollection(selectedCollection);
-            setCardState(CardState.TO_DRAW);
+            if (activeCollection != null)
+                setCardState(CardState.TO_DRAW);
+            else {
+                handleError("Error with fetching data of collection '" + selectedCollection + "'!");
+                setCardState(CardState.ABSENT);
+            }
         } else {
             activeCollection = null;
             setCardState(CardState.ABSENT);
@@ -188,14 +181,18 @@ public class MainController {
 
     @FXML
     void handlePassedClicked(ActionEvent ignoredEvent) {
-        activeCollection.putBorrowedCard(true);
-        setCardState(CardState.TO_DRAW);
+        if (cardState == CardState.FACE_UP) {
+            activeCollection.putBorrowedCard(true);
+            setCardState(CardState.TO_DRAW);
+        }
     }
 
     @FXML
     void handleFailedClicked(ActionEvent ignoredEvent) {
-        activeCollection.putBorrowedCard(false);
-        setCardState(CardState.TO_DRAW);
+        if (cardState == CardState.FACE_UP) {
+            activeCollection.putBorrowedCard(false);
+            setCardState(CardState.TO_DRAW);
+        }
     }
 
     private void deleteCollection(String collectionName) {
@@ -220,24 +217,20 @@ public class MainController {
                     return;
 
                 setCardText(activeCard.reverseText());
-                setEnabledStates(false, false);
+                setEnabledStates(false, false, false);
             }
             case FACE_UP -> {
                 setCardText(activeCollection.getActiveCard().frontText());
-                setEnabledStates(false, true);
+                setEnabledStates(false, true, false);
             }
             case TO_DRAW -> {
                 setCardText("Get next");
-                setEnabledStates(true, false);
+                setEnabledStates(true, false, true);
                 refreshGroupView();
             }
             case ABSENT -> {
                 setCardText("Select collection");
-                pnOptions.setDisable(false);
-                pnFlashcard.setDisable(true);
-                pnBox.setDisable(true);
-                pnUnboxedCards.setDisable(true);
-                pnButtons.setDisable(true);
+                setEnabledStates(false, false, true);
                 refreshGroupView();
             }
             default -> throw new IllegalStateException("Unexpected value: " + state);
@@ -275,12 +268,12 @@ public class MainController {
         }
     }
 
-    private void setEnabledStates(boolean cardGroupChoice, boolean cardRedirection) {
-        pnOptions.setDisable(!cardGroupChoice);
+    private void setEnabledStates(boolean cardGroupChoice, boolean cardRedirection, boolean collectionChange) {
+        pnOptions.setDisable(!collectionChange);
         pnBox.setDisable(!cardGroupChoice);
         pnUnboxedCards.setDisable(!cardGroupChoice);
         pnButtons.setDisable(!cardRedirection);
-        pnFlashcard.setDisable(!cardGroupChoice && cardRedirection);
+        pnFlashcard.setDisable(cardRedirection || collectionChange && !cardGroupChoice);
     }
 
     private void setButtonColor(Button button, String color) {
@@ -303,32 +296,37 @@ public class MainController {
     }
 
     private void refreshGroupView() {
-        List<Label> sectionLabels = List.of(lbSection1, lbSection2, lbSection3, lbSection4, lbSection5);
-        List<Integer> sectionSizes = CardBox.sectionSizes();
         final int numberOfPreparedCards;
         final int numberOfArchivedCards;
-        List<Integer> sectionsFilling;
+        List<Integer> sectionFillings;
 
         if (activeCollection == null) {
             numberOfPreparedCards = 0;
             numberOfArchivedCards = 0;
-            sectionsFilling = List.of(0, 0, 0, 0, 0);
+            sectionFillings = List.of(0, 0, 0, 0, 0);
         } else {
             numberOfPreparedCards = activeCollection.numberOfPreparedCards();
             numberOfArchivedCards = activeCollection.numberOfArchivedCards();
-            sectionsFilling = activeCollection.boxSectionsFilling();
+            sectionFillings = activeCollection.boxSectionsFilling();
         }
 
-        if (sectionLabels.size() != sectionsFilling.size()) {
+        setDisplayedGroupSizes(numberOfPreparedCards, numberOfArchivedCards, sectionFillings);
+    }
+
+    private void setDisplayedGroupSizes(int preparedCards, int archivedCards, List<Integer> sectionFillings) {
+        List<Label> sectionLabels = List.of(lbSection1, lbSection2, lbSection3, lbSection4, lbSection5);
+        List<Integer> sectionSizes = CardBox.sectionSizes();
+
+        if (sectionLabels.size() != sectionFillings.size()) {
             handleError("Incorrect card box data!");
             return;
         }
 
-        btnPrepared.setText(String.valueOf(numberOfPreparedCards));
-        btnArchived.setText(String.valueOf(numberOfArchivedCards));
+        btnPrepared.setText(String.valueOf(preparedCards));
+        btnArchived.setText(String.valueOf(archivedCards));
 
         for (int i = 0; i < sectionLabels.size(); ++i) {
-            String text = String.valueOf(sectionsFilling.get(i)) + '/' + sectionSizes.get(i);
+            String text = String.valueOf(sectionFillings.get(i)) + '/' + sectionSizes.get(i);
             sectionLabels.get(i).setText(text);
         }
     }
@@ -342,17 +340,11 @@ public class MainController {
 
     private void openCreationDialog() {
         try {
-            Stage stage = new Stage();
             FXMLLoader fxmlLoader = new FXMLLoader(CreationController.class.getResource("/creation-dialog.fxml"));
             Parent root = fxmlLoader.load();
-            stage.setScene(new Scene(root));
-            stage.setTitle("Creation dialog");
-            stage.initModality(Modality.WINDOW_MODAL);
-            stage.initOwner(pnOptions.getScene().getWindow());
-
             CreationController controller = fxmlLoader.getController();
             controller.setup(collectionsManager);
-            stage.showAndWait();
+            openDialog(root, "Creation dialog");
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -360,20 +352,23 @@ public class MainController {
 
     private void openEditionDialog() {
         try {
-            Stage stage = new Stage();
             FXMLLoader fxmlLoader = new FXMLLoader(EditionController.class.getResource("/edition-dialog.fxml"));
             Parent root = fxmlLoader.load();
-            stage.setScene(new Scene(root));
-            stage.setTitle("Edition dialog");
-            stage.initModality(Modality.WINDOW_MODAL);
-            stage.initOwner(pnOptions.getScene().getWindow());
-
             EditionController controller = fxmlLoader.getController();
             controller.setup(activeCollection);
-            stage.showAndWait();
+            openDialog(root, "Edition dialog");
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+        refreshGroupView();
     }
 
+    private void openDialog(Parent parent, String title) {
+        Stage stage = new Stage();
+        stage.setScene(new Scene(parent));
+        stage.setTitle(title);
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initOwner(pnOptions.getScene().getWindow());
+        stage.showAndWait();
+    }
 }

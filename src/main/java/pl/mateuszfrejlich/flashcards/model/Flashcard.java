@@ -1,4 +1,4 @@
-package pl.mateuszfrejlich.flashcards;
+package pl.mateuszfrejlich.flashcards.model;
 
 public record Flashcard(String frontText, String reverseText) {
     public int maxNumOfChars() {

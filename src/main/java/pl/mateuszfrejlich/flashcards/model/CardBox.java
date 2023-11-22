@@ -1,4 +1,4 @@
-package pl.mateuszfrejlich.flashcards;
+package pl.mateuszfrejlich.flashcards.model;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,6 +36,7 @@ public class CardBox extends CardGroup {
         return cardSections.stream().map(Collection::stream).collect(Collectors.toList());
     }
 
+    @Override
     public boolean addNewCard(Flashcard card) {
         if (deadlockOccurrence(1))
             return false;
@@ -45,6 +46,7 @@ public class CardBox extends CardGroup {
         return true;
     }
 
+    @Override
     public Flashcard popNextCard() {
         if (lentCard != null)
             return null;
@@ -68,6 +70,7 @@ public class CardBox extends CardGroup {
         return null;
     }
 
+    @Override
     public void putBorrowedCard(boolean isPassed) {
         if (lentCard == null)
             return;

@@ -8,9 +8,9 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
-import pl.mateuszfrejlich.flashcards.CardCollection;
-import pl.mateuszfrejlich.flashcards.CollectionEditor;
-import pl.mateuszfrejlich.flashcards.Flashcard;
+import pl.mateuszfrejlich.flashcards.model.CardCollection;
+import pl.mateuszfrejlich.flashcards.model.CollectionEditor;
+import pl.mateuszfrejlich.flashcards.model.Flashcard;
 
 import java.util.List;
 import java.util.stream.Collectors;
