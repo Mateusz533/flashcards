@@ -4,11 +4,15 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import pl.mateuszfrejlich.flashcards.service.CollectionsManager;
 
 import java.io.File;
 
+@Controller
 public class CreationController {
+    @Autowired
     private CollectionsManager collectionsManager;
     @FXML
     private TextField tfName;
@@ -20,10 +24,6 @@ public class CreationController {
     private Button btnPath;
     @FXML
     private CheckBox cbEmpty;
-
-    public void setup(CollectionsManager collectionsManager) {
-        this.collectionsManager = collectionsManager;
-    }
 
     @FXML
     void handleOK(ActionEvent ignoredEvent) {
@@ -79,5 +79,4 @@ public class CreationController {
         else
             return collectionsManager.addNewCollection(tfName.getText().trim(), tfPath.getText().trim());
     }
-
 }

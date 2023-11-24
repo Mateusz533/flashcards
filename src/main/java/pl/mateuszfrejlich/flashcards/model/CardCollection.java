@@ -86,7 +86,7 @@ public class CardCollection {
         activeCard = null;
     }
 
-    public void processNextCard() {
+    public boolean processNextCard() {
         switch (cardGroupChoice) {
             case PREPARED -> activeCard = preparedCards.popNextCard();
             case INBOX -> activeCard = cardBox.popNextCard();
@@ -95,5 +95,6 @@ public class CardCollection {
             }
             default -> throw new IllegalStateException("Unexpected value: " + cardGroupChoice);
         }
+        return activeCard != null;
     }
 }

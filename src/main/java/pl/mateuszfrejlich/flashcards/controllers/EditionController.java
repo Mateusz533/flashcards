@@ -8,16 +8,21 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import pl.mateuszfrejlich.flashcards.model.CardCollection;
 import pl.mateuszfrejlich.flashcards.model.CollectionEditor;
 import pl.mateuszfrejlich.flashcards.model.Flashcard;
+import pl.mateuszfrejlich.flashcards.model.SessionState;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Controller
 public class EditionController {
-    private CardCollection cardCollection;
+    @Autowired
+    private SessionState sessionState;
     private CollectionEditor editor;
     private boolean isSwapped = false;
 
@@ -33,18 +38,20 @@ public class EditionController {
     @FXML
     private TextField tfReverse;
 
-    public void setup(CardCollection cardCollection) {
-        this.cardCollection = cardCollection;
+    public void start() {
         Platform.runLater(() -> {
-            pnForm.setText(cardCollection.getName());
-            editor = cardCollection.createEditor();
+            CardCollection activeCollection = sessionState.getActiveCollection();
+            pnForm.setText(activeCollection.getName());
+            editor = activeCollection.createEditor();
             refreshWordList();
         });
     }
 
     @FXML
     void handleOK(ActionEvent ignoredEvent) {
-        cardCollection.executeEdition(editor);
+        CardCollection activeCollection = sessionState.getActiveCollection();
+        activeCollection.executeEdition(editor);
+        sessionState.setActiveCollection(activeCollection);
         pnForm.getScene().getWindow().hide();
     }
 

@@ -1,5 +1,6 @@
 package pl.mateuszfrejlich.flashcards;
 
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -12,14 +13,15 @@ import org.springframework.stereotype.Component;
 import pl.mateuszfrejlich.flashcards.controllers.MainController;
 
 import java.io.IOException;
+import java.net.URL;
 
 import static pl.mateuszfrejlich.flashcards.MainApplication.StageReadyEvent;
 
 @Component
 public class StageInitializer implements ApplicationListener<StageReadyEvent> {
+    private final ApplicationContext applicationContext;
     @Value("classpath:/main-view.fxml")
     private Resource resource;
-    private final ApplicationContext applicationContext;
 
     public StageInitializer(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
@@ -28,21 +30,32 @@ public class StageInitializer implements ApplicationListener<StageReadyEvent> {
     @Override
     public void onApplicationEvent(StageReadyEvent event) {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(resource.getURL());
-            fxmlLoader.setControllerFactory(applicationContext::getBean);
-            Parent parent = fxmlLoader.load();
-
             Stage stage = event.getStage();
-            stage.setScene(new Scene(parent, 800, 570));
+            MainController controller = (MainController) initStage(stage, resource.getURL());
+
+            stage.setWidth(800);
+            stage.setHeight(600);
             stage.setMinWidth(800);
             stage.setMinHeight(600);
             stage.setTitle("Flashcards");
 
-            MainController controller = applicationContext.getBean(MainController.class);
-            controller.setup(stage);
+            controller.start(stage);
             stage.show();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.err.println(e.getMessage());
+            Platform.exit();
         }
+    }
+
+    /**
+     * @return bean of a controller assigned to the fxml from given url
+     */
+    public Object initStage(Stage stage, URL url) throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(url);
+        fxmlLoader.setControllerFactory(applicationContext::getBean);
+        Parent parent = fxmlLoader.load();
+        stage.setScene(new Scene(parent));
+
+        return fxmlLoader.getController();
     }
 }
