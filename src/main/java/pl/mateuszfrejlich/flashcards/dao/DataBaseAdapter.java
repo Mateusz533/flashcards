@@ -20,11 +20,11 @@ public interface DataBaseAdapter {
 
     List<Stream<Flashcard>> getCardBoxSections(String collectionName);
 
-    void updatePreparedCardsCollection(String selectedCollectionName, Stream<Flashcard> stream);
+    boolean updatePreparedCardsCollection(String selectedCollectionName, Stream<Flashcard> stream);
 
-    void updateArchivedCardsCollection(String selectedCollectionName, Stream<Flashcard> stream);
+    boolean updateArchivedCardsCollection(String selectedCollectionName, Stream<Flashcard> stream);
 
-    void updateInboxCardsCollection(String selectedCollectionName, List<Stream<Flashcard>> sections);
+    boolean updateInboxCardsCollection(String selectedCollectionName, List<Stream<Flashcard>> sections);
 
     boolean createNewCollection(String name, Stream<Flashcard> initialData);
 

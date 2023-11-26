@@ -53,7 +53,7 @@ public class OptionsController {
     @FXML
     void handleEditClicked(ActionEvent ignoredEvent) {
         if (!sessionState.hasActiveCollection())
-            handleError("No collection selected!");
+            ErrorHandler.handleError("No collection selected!");
         else
             openEditionDialog();
     }
@@ -61,7 +61,7 @@ public class OptionsController {
     @FXML
     void handleDeleteClicked(ActionEvent ignoredEvent) {
         if (!sessionState.hasActiveCollection()) {
-            handleError("No collection selected!");
+            ErrorHandler.handleError("No collection selected!");
             return;
         }
 
@@ -73,7 +73,8 @@ public class OptionsController {
     @FXML
     void handleCollectionChanged(ActionEvent ignoredEvent) {
         if (sessionState.hasActiveCollection())
-            collectionsManager.updateCardsCollection(sessionState.getActiveCollection());
+            if (!collectionsManager.updateCardsCollection(sessionState.getActiveCollection()))
+                ErrorHandler.handleError("Error with database connection! Data has NOT been saved!");
 
         String selectedCollectionName = cbxCollection.getValue();
         sessionState.setCardGroupChoice(CardGroupChoice.UNSELECTED);
@@ -89,7 +90,7 @@ public class OptionsController {
         if (newActiveCollection != null)
             sessionState.setCardState(CardState.TO_DRAW);
         else {
-            handleError("Error with fetching data of collection '" + selectedCollectionName + "'!");
+            ErrorHandler.handleError("Error with fetching data of collection '" + selectedCollectionName + "'!");
             sessionState.setCardState(CardState.ABSENT);
         }
     }
@@ -117,7 +118,7 @@ public class OptionsController {
     private void deleteCollection(String collectionName) {
         final boolean deleted = collectionsManager.deleteCollection(collectionName);
         if (!deleted) {
-            handleError("Request to database has caused an error! Collection wasn't delete properly!");
+            ErrorHandler.handleError("Request to database has caused an error! Collection wasn't delete properly!");
             return;
         }
 
@@ -133,13 +134,6 @@ public class OptionsController {
             cbxCollection.getItems().clear();
             cbxCollection.setItems(FXCollections.observableList(names.collect(Collectors.toList())));
         }
-    }
-
-    private void handleError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText(message);
-        alert.show();
     }
 
     private void openCreationDialog() {

@@ -3,12 +3,11 @@ package pl.mateuszfrejlich.flashcards.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import pl.mateuszfrejlich.flashcards.model.CardCollection;
 import pl.mateuszfrejlich.flashcards.dao.DataBaseAdapter;
+import pl.mateuszfrejlich.flashcards.model.CardCollection;
 import pl.mateuszfrejlich.flashcards.model.Flashcard;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,11 +59,13 @@ public class CollectionsManager {
         return dbAdapter.createNewCollection(name, stream);
     }
 
-    public void updateCardsCollection(CardCollection cardCollection) {
+    public boolean updateCardsCollection(CardCollection cardCollection) {
         String name = cardCollection.getName();
-        dbAdapter.updatePreparedCardsCollection(name, cardCollection.getPreparedCards());
-        dbAdapter.updateArchivedCardsCollection(name, cardCollection.getArchivedCards());
-        dbAdapter.updateInboxCardsCollection(name, cardCollection.getCardBoxSections());
+        final boolean updatedPrep = dbAdapter.updatePreparedCardsCollection(name, cardCollection.getPreparedCards());
+        final boolean updatedArch = dbAdapter.updateArchivedCardsCollection(name, cardCollection.getArchivedCards());
+        final boolean updatedInbox = dbAdapter.updateInboxCardsCollection(name, cardCollection.getCardBoxSections());
+
+        return updatedPrep && updatedArch && updatedInbox;
     }
 
     public boolean deleteCollection(String collectionName) {
@@ -85,11 +86,7 @@ public class CollectionsManager {
                     list.add(nextCard);
             }
             reader.close();
-        } catch (FileNotFoundException e) {
-            System.out.println("File not found!");
-            return false;
         } catch (Exception e) {
-            System.out.println("Invalid file data!");
             return false;
         }
 

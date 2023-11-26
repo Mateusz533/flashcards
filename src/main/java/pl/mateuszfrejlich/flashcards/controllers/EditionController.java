@@ -4,7 +4,6 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
@@ -68,7 +67,7 @@ public class EditionController {
         if (updated)
             cbxItem.getItems().add(formatCardText(card));
         else
-            handleError("Invalid data");
+            ErrorHandler.handleError("Invalid data");
     }
 
     @FXML
@@ -76,7 +75,7 @@ public class EditionController {
         final int index = cbxItem.getSelectionModel().getSelectedIndex();
 
         if (index == -1)
-            handleError("No selected item!");
+            ErrorHandler.handleError("No selected item!");
         else
             updateItem(index);
     }
@@ -86,7 +85,7 @@ public class EditionController {
         final int index = cbxItem.getSelectionModel().getSelectedIndex();
 
         if (index == -1)
-            handleError("No selected item!");
+            ErrorHandler.handleError("No selected item!");
         else {
             editor.deleteCard(index);
             cbxItem.getItems().remove(index);
@@ -136,7 +135,7 @@ public class EditionController {
             cbxItem.getItems().add(index, formatCardText(card));
             clearTextFields();
         } else
-            handleError("Invalid data!");
+            ErrorHandler.handleError("Invalid data!");
     }
 
     private String formatCardText(Flashcard card) {
@@ -144,12 +143,5 @@ public class EditionController {
             return card.reverseText() + '/' + card.frontText();
         else
             return card.frontText() + '/' + card.reverseText();
-    }
-
-    private void handleError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText(message);
-        alert.show();
     }
 }

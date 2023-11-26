@@ -1,7 +1,6 @@
 package pl.mateuszfrejlich.flashcards.controllers;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
@@ -44,9 +43,7 @@ public class BoxController {
     public void handleEvent(SessionState.CardStateChangeEvent event) {
         CardState cardState = sessionState.getCardState();
         switch (cardState) {
-            case REVERSED, FACE_UP -> {
-                pnBox.setDisable(true);
-            }
+            case REVERSED, FACE_UP -> pnBox.setDisable(true);
             case TO_DRAW -> {
                 pnBox.setDisable(false);
                 refreshView();
@@ -82,7 +79,7 @@ public class BoxController {
         List<Integer> sectionSizes = CardBox.sectionSizes();
 
         if (sectionLabels.size() != sectionFillings.size()) {
-            handleError("Incorrect card box data!");
+            ErrorHandler.handleError("Incorrect card box data!");
             return;
         }
 
@@ -90,12 +87,5 @@ public class BoxController {
             String text = String.valueOf(sectionFillings.get(i)) + '/' + sectionSizes.get(i);
             sectionLabels.get(i).setText(text);
         }
-    }
-
-    private void handleError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText(message);
-        alert.show();
     }
 }

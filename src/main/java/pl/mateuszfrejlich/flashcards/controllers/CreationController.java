@@ -31,12 +31,8 @@ public class CreationController {
 
         if (created)
             cbEmpty.getScene().getWindow().hide();
-        else {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("Invalid data!");
-            alert.show();
-        }
+        else
+            ErrorHandler.handleError("Invalid data!");
     }
 
     @FXML

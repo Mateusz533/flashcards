@@ -1,49 +1,38 @@
 package pl.mateuszfrejlich.flashcards.dao;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import pl.mateuszfrejlich.flashcards.model.Flashcard;
 
-import java.sql.*;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
+
 
 @Repository("mySQL")
 public class MySQLAdapter implements DataBaseAdapter {
-    private static final String SCHEMA_NAME = "flashcard-collection";
-    private static final String DB_URL = "jdbc:mysql://localhost/" + SCHEMA_NAME;
-    private static final String USERNAME = "guest";
-    private static final String PASSWORD = "Guest123";
     private static final String PREPARED_CARDS_SUFFIX = "-pre";
     private static final String ARCHIVED_CARDS_SUFFIX = "-arch";
     private static final List<String> SECTION_SUFFIXES = List.of("-sec-1", "-sec-2", "-sec-3", "-sec-4", "-sec-5");
-    private Statement statement = null;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Override
     public void openConnection() throws SQLException {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-        } catch (Exception e) {
-            throw new SQLException("Failed to add MySQL JDBC Driver!");
+            Objects.requireNonNull(jdbcTemplate.getDataSource()).getConnection();
+        } catch (SQLException | NullPointerException e) {
+            throw new SQLException("Failed to connect with database!");
         }
-        Connection connection = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
-        statement = connection.createStatement();
     }
 
     @Override
     public Stream<String> getCollectionNames() {
-        List<String> names = new ArrayList<>();
-        String query = "SHOW TABLES FROM `" + SCHEMA_NAME + "`;";
-        try {
-            ResultSet resultSet = statement.executeQuery(query);
-            while (resultSet.next()) {
-                String name = resultSet.getString(1);
-                names.add(name);
-            }
-        } catch (Exception e) {
-            return null;
-        }
-
+        List<String> names = jdbcTemplate.query("SHOW TABLES;", (rs, rowNum) -> rs.getString(1));
         return names.stream()
                 .filter(s -> s.endsWith(PREPARED_CARDS_SUFFIX))
                 .map(s -> s.substring(0, s.length() - PREPARED_CARDS_SUFFIX.length()));
@@ -75,20 +64,22 @@ public class MySQLAdapter implements DataBaseAdapter {
     }
 
     @Override
-    public void updatePreparedCardsCollection(String selectedCollectionName, Stream<Flashcard> stream) {
-        overrideTable(selectedCollectionName + PREPARED_CARDS_SUFFIX, stream);
+    public boolean updatePreparedCardsCollection(String selectedCollectionName, Stream<Flashcard> stream) {
+        return overrideTable(selectedCollectionName + PREPARED_CARDS_SUFFIX, stream);
     }
 
     @Override
-    public void updateArchivedCardsCollection(String selectedCollectionName, Stream<Flashcard> stream) {
-        overrideTable(selectedCollectionName + ARCHIVED_CARDS_SUFFIX, stream);
+    public boolean updateArchivedCardsCollection(String selectedCollectionName, Stream<Flashcard> stream) {
+        return overrideTable(selectedCollectionName + ARCHIVED_CARDS_SUFFIX, stream);
     }
 
     @Override
-    public void updateInboxCardsCollection(String selectedCollectionName, List<Stream<Flashcard>> sections) {
+    public boolean updateInboxCardsCollection(String selectedCollectionName, List<Stream<Flashcard>> sections) {
         for (int i = 0; i < SECTION_SUFFIXES.size(); ++i) {
-            overrideTable(selectedCollectionName + SECTION_SUFFIXES.get(i), sections.get(i));
+            if (!overrideTable(selectedCollectionName + SECTION_SUFFIXES.get(i), sections.get(i)))
+                return false;
         }
+        return true;
     }
 
     @Override
@@ -108,65 +99,54 @@ public class MySQLAdapter implements DataBaseAdapter {
             return false;
 
         for (String suffix : allSuffixes()) {
-            String query = getDeleteTableQuery(name + suffix);
+            String query = "DROP TABLE `" + name + suffix + "`;";
             if (!safeExecute(query))
                 return false;
         }
         return true;
     }
 
-    private String getCreateTableQuery(String name) {
-        String query = "CREATE TABLE `" + SCHEMA_NAME + "`.`" + name + "` (\n";
-        query += "`id` INT NOT NULL AUTO_INCREMENT,\n";
-        query += "`front` VARCHAR(255) NOT NULL,\n";
-        query += "`reverse` VARCHAR(255) NOT NULL,\n";
-        query += "PRIMARY KEY (`id`),\n";
-        query += "UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE);\n";
-
-        return query;
-    }
-
-    private String getDeleteTableQuery(String name) {
-        return "DROP TABLE `" + SCHEMA_NAME + "`.`" + name + "`;";
-    }
-
     private Stream<Flashcard> getCards(String tableName) {
-        String query = "SELECT * FROM `" + SCHEMA_NAME + "`.`" + tableName + "`;";
         try {
-            ResultSet resultSet = statement.executeQuery(query);
-            return getCardsFromResponse(resultSet);
+            String query = "SELECT `front`, `reverse` FROM `" + tableName + "`;";
+            List<Flashcard> list = jdbcTemplate.query(query, (rs, rowNum) -> {
+                String front = rs.getString("front");
+                String reverse = rs.getString("reverse");
+                return new Flashcard(front, reverse);
+            });
+            return list.stream();
         } catch (Exception e) {
             return null;
         }
     }
 
-    private Stream<Flashcard> getCardsFromResponse(ResultSet resultSet) {
-        List<Flashcard> list = new ArrayList<>();
-        try {
-            while (resultSet.next()) {
-                String front = resultSet.getString(2);
-                String reverse = resultSet.getString(3);
-                list.add(new Flashcard(front, reverse));
-            }
-        } catch (Exception e) {
-            return null;
-        }
-        return list.stream();
-    }
-
-    private void overrideTable(String name, Stream<Flashcard> stream) {
-        String query = "DELETE FROM `" + SCHEMA_NAME + "`.`" + name + "`;";
-        if (safeExecute(query))
-            fillTable(name, stream);
+    private boolean overrideTable(String name, Stream<Flashcard> stream) {
+        String query = "DELETE FROM `" + name + "`;";
+        return safeExecute(query) && fillTable(name, stream);
     }
 
     private boolean fillTable(String tableName, Stream<Flashcard> stream) {
-        String queryBegin = "INSERT INTO `" + SCHEMA_NAME + "`.`" + tableName + "`(front, reverse) VALUES ('";
+        if (stream == null)
+            return true;
 
-        return stream.allMatch(card -> {
-            String query = queryBegin + card.frontText() + "', '" + card.reverseText() + "');";
-            return safeExecute(query);
-        });
+        String queryBegin = "INSERT INTO `" + tableName + "`(`front`, `reverse`) VALUES\n";
+        String values = stream.map(card -> "('" + card.frontText() + "', '" + card.reverseText() + "'),")
+                .reduce("", (a, b) -> a + b);
+        if (values.isEmpty())
+            return true;
+
+        String query = queryBegin + values.substring(0, values.length() - 1) + ";";
+
+        return safeExecute(query);
+    }
+
+    private boolean safeExecute(String query) {
+        try {
+            jdbcTemplate.execute(query);
+            return true;
+        } catch (DataAccessException e) {
+            return false;
+        }
     }
 
     private List<String> allSuffixes() {
@@ -177,14 +157,13 @@ public class MySQLAdapter implements DataBaseAdapter {
         return suffixes;
     }
 
-    private boolean safeExecute(String query) {
-        try {
-            statement.execute(query);
-            return true;
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-            return false;
-        }
+    private String getCreateTableQuery(String name) {
+        return "CREATE TABLE `" + name + "` (\n" + """
+                `id` INT NOT NULL AUTO_INCREMENT,
+                `front` VARCHAR(255) NOT NULL,
+                `reverse` VARCHAR(255) NOT NULL,
+                PRIMARY KEY (`id`),
+                UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE)""";
     }
 }
 

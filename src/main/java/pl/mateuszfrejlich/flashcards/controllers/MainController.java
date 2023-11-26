@@ -3,7 +3,6 @@ package pl.mateuszfrejlich.flashcards.controllers;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
@@ -16,7 +15,10 @@ import javafx.stage.WindowEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Controller;
-import pl.mateuszfrejlich.flashcards.model.*;
+import pl.mateuszfrejlich.flashcards.model.CardCollection;
+import pl.mateuszfrejlich.flashcards.model.CardGroupChoice;
+import pl.mateuszfrejlich.flashcards.model.CardState;
+import pl.mateuszfrejlich.flashcards.model.SessionState;
 import pl.mateuszfrejlich.flashcards.service.CollectionsManager;
 
 @Controller
@@ -50,13 +52,13 @@ public class MainController {
         Platform.runLater(() -> {
             try {
                 collectionsManager.setupDBConnection();
+                sessionState.setCardState(CardState.ABSENT);
+                sessionState.setCardGroupChoice(CardGroupChoice.UNSELECTED);
+                optionsController.start();
             } catch (Exception e) {
-                handleError(e.getMessage());
+                ErrorHandler.handleError(e.getMessage());
                 pnFlashcard.getScene().getWindow().hide();
             }
-            sessionState.setCardState(CardState.ABSENT);
-            sessionState.setCardGroupChoice(CardGroupChoice.UNSELECTED);
-            optionsController.start();
         });
     }
 
@@ -203,12 +205,5 @@ public class MainController {
 
         btnPrepared.setText(String.valueOf(numberOfPreparedCards));
         btnArchived.setText(String.valueOf(numberOfArchivedCards));
-    }
-
-    private void handleError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText(message);
-        alert.show();
     }
 }
