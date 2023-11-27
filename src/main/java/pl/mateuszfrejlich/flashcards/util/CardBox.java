@@ -1,20 +1,19 @@
-package pl.mateuszfrejlich.flashcards.model;
+package pl.mateuszfrejlich.flashcards.util;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class CardBox extends CardGroup {
+public class CardBox implements CardGroup {
     private static final List<Integer> SECTION_SIZES = List.of(50, 70, 95, 130, 155);
     private static final int FIRST_SECTION_MIN_FILLING = (int) (0.8 * SECTION_SIZES.get(0));
     private final List<Deque<Flashcard>> cardSections;
-    private final CardQueue archive;
     private int selectedSectionIndex = 0;
+    private Flashcard lentCard = null;
 
-    public CardBox(CardQueue archive, List<Stream<Flashcard>> sections) {
+    public CardBox(List<Stream<Flashcard>> sections) {
         if (sections.size() != SECTION_SIZES.size())
             throw new IllegalArgumentException("Required list of size: 5 !!!");
-        this.archive = archive;
         cardSections = new ArrayList<>(SECTION_SIZES.size());
         for (Stream<Flashcard> stream : sections) {
             ArrayDeque<Flashcard> section = stream.collect(Collectors.toCollection(ArrayDeque::new));
@@ -37,8 +36,13 @@ public class CardBox extends CardGroup {
     }
 
     @Override
+    public Flashcard getBorrowedCard() {
+        return lentCard;
+    }
+
+    @Override
     public boolean addNewCard(Flashcard card) {
-        if (deadlockOccurrence(1))
+        if (card == null || deadlockOccurrence(1))
             return false;
 
         Deque<Flashcard> firstSection = cardSections.get(0);
@@ -47,7 +51,7 @@ public class CardBox extends CardGroup {
     }
 
     @Override
-    public Flashcard popNextCard() {
+    public Flashcard borrowNextCard() {
         if (lentCard != null)
             return null;
 
@@ -71,19 +75,21 @@ public class CardBox extends CardGroup {
     }
 
     @Override
-    public void putBorrowedCard(boolean isPassed) {
+    public Flashcard putCardBack(boolean isPassed) {
         if (lentCard == null)
-            return;
+            return null;
 
-        if (!isPassed) {
-            cardSections.get(0).addLast(lentCard);
-        } else if (selectedSectionIndex + 1 == SECTION_SIZES.size()) {
-            archive.addNewCard(lentCard);
-        } else {
-            cardSections.get(selectedSectionIndex + 1).addLast(lentCard);
-        }
-
+        Flashcard activeCard = lentCard;
         lentCard = null;
+
+        if (!isPassed)
+            cardSections.get(0).addLast(activeCard);
+        else if (selectedSectionIndex + 1 < SECTION_SIZES.size())
+            cardSections.get(selectedSectionIndex + 1).addLast(activeCard);
+        else
+            return activeCard;
+
+        return null;
     }
 
     private boolean deadlockOccurrence(int numberOfAddedCards) {

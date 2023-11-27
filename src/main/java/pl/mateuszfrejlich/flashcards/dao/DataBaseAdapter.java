@@ -1,7 +1,7 @@
 package pl.mateuszfrejlich.flashcards.dao;
 
 import org.springframework.stereotype.Repository;
-import pl.mateuszfrejlich.flashcards.model.Flashcard;
+import pl.mateuszfrejlich.flashcards.util.Flashcard;
 
 import java.sql.SQLException;
 import java.util.List;

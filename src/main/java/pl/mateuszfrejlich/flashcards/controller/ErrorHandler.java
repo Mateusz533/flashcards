@@ -1,4 +1,4 @@
-package pl.mateuszfrejlich.flashcards.controllers;
+package pl.mateuszfrejlich.flashcards.controller;
 
 import javafx.scene.control.Alert;
 

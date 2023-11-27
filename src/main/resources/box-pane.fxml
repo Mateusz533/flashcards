@@ -9,7 +9,7 @@
 <?import javafx.scene.text.Font?>
 
 
-<GridPane maxWidth="500.0" minWidth="200.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.mateuszfrejlich.flashcards.controllers.BoxController">
+<GridPane maxWidth="500.0" minWidth="200.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.mateuszfrejlich.flashcards.controller.BoxController">
    <columnConstraints>
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
    </columnConstraints>

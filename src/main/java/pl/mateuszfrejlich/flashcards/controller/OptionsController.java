@@ -1,4 +1,4 @@
-package pl.mateuszfrejlich.flashcards.controllers;
+package pl.mateuszfrejlich.flashcards.controller;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -12,16 +12,16 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Controller;
 import pl.mateuszfrejlich.flashcards.StageInitializer;
-import pl.mateuszfrejlich.flashcards.model.CardCollection;
-import pl.mateuszfrejlich.flashcards.model.CardGroupChoice;
-import pl.mateuszfrejlich.flashcards.model.CardState;
 import pl.mateuszfrejlich.flashcards.model.SessionState;
 import pl.mateuszfrejlich.flashcards.service.CollectionsManager;
+import pl.mateuszfrejlich.flashcards.util.CardCollection;
+import pl.mateuszfrejlich.flashcards.util.CardState;
 
-import java.net.URL;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,6 +34,10 @@ public class OptionsController {
     private SessionState sessionState;
     @Autowired
     private StageInitializer stageInitializer;
+    @Value("classpath:/creation-dialog.fxml")
+    private Resource creationDialogResource;
+    @Value("classpath:/edition-dialog.fxml")
+    private Resource editionDialogResource;
     @FXML
     private ComboBox<String> cbxCollection;
     @FXML
@@ -45,7 +49,7 @@ public class OptionsController {
 
     @FXML
     void handleNewClicked(ActionEvent ignoredEvent) {
-        openCreationDialog();
+        openDialog(creationDialogResource, "Creation dialog", CreationController.class);
         cbxCollection.getItems().clear();
         refreshCollectionList();
     }
@@ -55,7 +59,7 @@ public class OptionsController {
         if (!sessionState.hasActiveCollection())
             ErrorHandler.handleError("No collection selected!");
         else
-            openEditionDialog();
+            openDialog(editionDialogResource, "Edition dialog", EditionController.class);
     }
 
     @FXML
@@ -71,28 +75,12 @@ public class OptionsController {
     }
 
     @FXML
-    void handleCollectionChanged(ActionEvent ignoredEvent) {
+    void handleCollectionSelected(ActionEvent ignoredEvent) {
         if (sessionState.hasActiveCollection())
-            if (!collectionsManager.updateCardsCollection(sessionState.getActiveCollection()))
-                ErrorHandler.handleError("Error with database connection! Data has NOT been saved!");
+            saveActiveCollection();
 
         String selectedCollectionName = cbxCollection.getValue();
-        sessionState.setCardGroupChoice(CardGroupChoice.UNSELECTED);
-
-        if (selectedCollectionName == null) {
-            sessionState.setActiveCollection(null);
-            sessionState.setCardState(CardState.ABSENT);
-            return;
-        }
-
-        CardCollection newActiveCollection = collectionsManager.getCollection(selectedCollectionName);
-        sessionState.setActiveCollection(newActiveCollection);
-        if (newActiveCollection != null)
-            sessionState.setCardState(CardState.TO_DRAW);
-        else {
-            ErrorHandler.handleError("Error with fetching data of collection '" + selectedCollectionName + "'!");
-            sessionState.setCardState(CardState.ABSENT);
-        }
+        changeActiveCollection(selectedCollectionName);
     }
 
     @EventListener
@@ -101,6 +89,23 @@ public class OptionsController {
             case TO_DRAW, ABSENT -> pnOptions.setDisable(false);
             case REVERSED, FACE_UP -> pnOptions.setDisable(true);
         }
+    }
+
+    private void saveActiveCollection() {
+        if (!collectionsManager.updateCardsCollection(sessionState.getActiveCollection()))
+            ErrorHandler.handleError("Error with database connection! Data has NOT been saved!");
+    }
+
+    private void changeActiveCollection(String name) {
+        CardCollection newActiveCollection = name != null ? collectionsManager.getCollection(name) : null;
+
+        if (sessionState.setActiveCollection(newActiveCollection))
+            sessionState.setCardState(newActiveCollection != null ? CardState.TO_DRAW : CardState.ABSENT);
+        else
+            ErrorHandler.handleError("Unable to change active collection! Put back the card first!");
+
+        if (name != null && newActiveCollection == null)
+            ErrorHandler.handleError("Error with fetching data of collection '" + name + "'!");
     }
 
     private boolean requestDeleteConfirmation(String collectionName) {
@@ -123,7 +128,6 @@ public class OptionsController {
         }
 
         sessionState.setActiveCollection(null);
-        sessionState.setCardGroupChoice(CardGroupChoice.UNSELECTED);
         sessionState.setCardState(CardState.ABSENT);
         cbxCollection.getItems().remove(cbxCollection.getValue());
     }
@@ -136,33 +140,21 @@ public class OptionsController {
         }
     }
 
-    private void openCreationDialog() {
+    private void openDialog(Resource resource, String title, Class<? extends DialogController> aClass) {
         try {
             Stage stage = new Stage();
-            URL url = CreationController.class.getResource("/creation-dialog.fxml");
-            CreationController ignoredController = (CreationController) stageInitializer.initStage(stage, url);
-            openDialog(stage, "Creation dialog");
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-    private void openEditionDialog() {
-        try {
-            Stage stage = new Stage();
-            URL url = EditionController.class.getResource("/edition-dialog.fxml");
-            EditionController controller = (EditionController) stageInitializer.initStage(stage, url);
+            DialogController controller = aClass.cast(stageInitializer.initStage(stage, resource.getURL()));
+            stage.setTitle(title);
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.initOwner(pnOptions.getScene().getWindow());
             controller.start();
-            openDialog(stage, "Edition dialog");
+            stage.showAndWait();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
 
-    private void openDialog(Stage stage, String title) {
-        stage.setTitle(title);
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.initOwner(pnOptions.getScene().getWindow());
-        stage.showAndWait();
+    interface DialogController {
+        void start();
     }
 }

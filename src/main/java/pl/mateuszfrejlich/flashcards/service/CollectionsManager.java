@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import pl.mateuszfrejlich.flashcards.dao.DataBaseAdapter;
-import pl.mateuszfrejlich.flashcards.model.CardCollection;
-import pl.mateuszfrejlich.flashcards.model.Flashcard;
+import pl.mateuszfrejlich.flashcards.util.CardCollection;
+import pl.mateuszfrejlich.flashcards.util.Flashcard;
 
 import java.io.File;
 import java.sql.SQLException;

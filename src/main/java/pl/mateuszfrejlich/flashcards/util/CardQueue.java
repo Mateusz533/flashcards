@@ -1,12 +1,13 @@
-package pl.mateuszfrejlich.flashcards.model;
+package pl.mateuszfrejlich.flashcards.util;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class CardQueue extends CardGroup {
+public class CardQueue implements CardGroup {
     private final Deque<Flashcard> cards;
+    private Flashcard lentCard = null;
 
     CardQueue(Stream<Flashcard> cards) {
         this.cards = cards.collect(Collectors.toCollection(ArrayDeque::new));
@@ -21,8 +22,13 @@ public class CardQueue extends CardGroup {
     }
 
     @Override
+    public Flashcard getBorrowedCard() {
+        return lentCard;
+    }
+
+    @Override
     public boolean addNewCard(Flashcard card) {
-        if (!card.isCorrect())
+        if (card == null || !card.isCorrect())
             return false;
 
         cards.add(card);
@@ -30,7 +36,7 @@ public class CardQueue extends CardGroup {
     }
 
     @Override
-    public Flashcard popNextCard() {
+    public Flashcard borrowNextCard() {
         if (lentCard != null)
             return null;
 
@@ -39,13 +45,17 @@ public class CardQueue extends CardGroup {
     }
 
     @Override
-    public void putBorrowedCard(boolean isPreserved) {
+    public Flashcard putCardBack(boolean isPassed) {
         if (lentCard == null)
-            return;
+            return null;
 
-        if (isPreserved)
-            cards.addLast(lentCard);
-
+        Flashcard activeCard = lentCard;
         lentCard = null;
+
+        if (!isPassed) {
+            cards.addLast(activeCard);
+            return null;
+        } else
+            return activeCard;
     }
 }

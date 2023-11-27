@@ -1,4 +1,4 @@
-package pl.mateuszfrejlich.flashcards.controllers;
+package pl.mateuszfrejlich.flashcards.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -7,7 +7,11 @@ import javafx.scene.layout.GridPane;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Controller;
-import pl.mateuszfrejlich.flashcards.model.*;
+import pl.mateuszfrejlich.flashcards.model.SessionState;
+import pl.mateuszfrejlich.flashcards.util.CardBox;
+import pl.mateuszfrejlich.flashcards.util.CardCollection;
+import pl.mateuszfrejlich.flashcards.util.CardGroupChoice;
+import pl.mateuszfrejlich.flashcards.util.CardState;
 
 import java.util.List;
 
@@ -52,7 +56,6 @@ public class BoxController {
                 pnBox.setDisable(true);
                 refreshView();
             }
-            default -> throw new IllegalStateException("Unexpected value: " + cardState);
         }
     }
 

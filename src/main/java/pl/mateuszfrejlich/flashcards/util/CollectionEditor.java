@@ -1,4 +1,4 @@
-package pl.mateuszfrejlich.flashcards.model;
+package pl.mateuszfrejlich.flashcards.util;
 
 import java.util.ArrayList;
 import java.util.List;

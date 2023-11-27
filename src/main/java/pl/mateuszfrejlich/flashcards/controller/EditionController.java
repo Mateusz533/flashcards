@@ -1,4 +1,4 @@
-package pl.mateuszfrejlich.flashcards.controllers;
+package pl.mateuszfrejlich.flashcards.controller;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -9,34 +9,31 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import pl.mateuszfrejlich.flashcards.model.CardCollection;
-import pl.mateuszfrejlich.flashcards.model.CollectionEditor;
-import pl.mateuszfrejlich.flashcards.model.Flashcard;
 import pl.mateuszfrejlich.flashcards.model.SessionState;
+import pl.mateuszfrejlich.flashcards.util.CardCollection;
+import pl.mateuszfrejlich.flashcards.util.CollectionEditor;
+import pl.mateuszfrejlich.flashcards.util.Flashcard;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Controller
-public class EditionController {
+public class EditionController implements OptionsController.DialogController {
     @Autowired
     private SessionState sessionState;
     private CollectionEditor editor;
     private boolean isSwapped = false;
-
     @FXML
     private TitledPane pnForm;
-
     @FXML
     private ComboBox<String> cbxItem;
-
     @FXML
     private TextField tfFront;
-
     @FXML
     private TextField tfReverse;
 
+    @Override
     public void start() {
         Platform.runLater(() -> {
             CardCollection activeCollection = sessionState.getActiveCollection();

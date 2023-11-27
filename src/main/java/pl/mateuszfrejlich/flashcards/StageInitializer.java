@@ -10,7 +10,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
-import pl.mateuszfrejlich.flashcards.controllers.MainController;
+import pl.mateuszfrejlich.flashcards.controller.MainController;
 
 import java.io.IOException;
 import java.net.URL;

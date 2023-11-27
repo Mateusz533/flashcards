@@ -4,12 +4,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+import pl.mateuszfrejlich.flashcards.util.CardCollection;
+import pl.mateuszfrejlich.flashcards.util.CardGroupChoice;
+import pl.mateuszfrejlich.flashcards.util.CardState;
 
 @Component
 public class SessionState {
     private CardCollection activeCollection = null;
     private CardState cardState = CardState.ABSENT;
-    private CardGroupChoice cardGroupChoice = CardGroupChoice.UNSELECTED;
     @Autowired
     private ActiveCollectionChangeEventPublisher activeCollectionChangeEventPublisher;
     @Autowired
@@ -25,9 +27,13 @@ public class SessionState {
         return activeCollection;
     }
 
-    public void setActiveCollection(CardCollection activeCollection) {
+    public boolean setActiveCollection(CardCollection activeCollection) {
+        if (this.activeCollection != null && !setCardGroupChoice(CardGroupChoice.UNSELECTED))
+            return false;
+
         this.activeCollection = activeCollection;
         activeCollectionChangeEventPublisher.publishEvent();
+        return true;
     }
 
     public CardState getCardState() {
@@ -40,14 +46,15 @@ public class SessionState {
     }
 
     public CardGroupChoice getCardGroupChoice() {
-        return cardGroupChoice;
+        return activeCollection != null ? activeCollection.getCardGroupChoice() : CardGroupChoice.UNSELECTED;
     }
 
-    public void setCardGroupChoice(CardGroupChoice cardGroupChoice) {
-        this.cardGroupChoice = cardGroupChoice;
-        if (activeCollection != null)
-            activeCollection.setCardGroupChoice(cardGroupChoice);
-        cardGroupChoiceChangeEventPublisher.publishEvent();
+    public boolean setCardGroupChoice(CardGroupChoice cardGroupChoice) {
+        final boolean setProperly = activeCollection != null && activeCollection.setCardGroupChoice(cardGroupChoice);
+        if (setProperly)
+            cardGroupChoiceChangeEventPublisher.publishEvent();
+
+        return setProperly;
     }
 
     public static class ActiveCollectionChangeEvent extends ApplicationEvent {

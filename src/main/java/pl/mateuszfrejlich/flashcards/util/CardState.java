@@ -1,4 +1,4 @@
-package pl.mateuszfrejlich.flashcards.model;
+package pl.mateuszfrejlich.flashcards.util;
 
 public enum CardState {
     ABSENT,

@@ -1,8 +1,11 @@
-package pl.mateuszfrejlich.flashcards.controllers;
+package pl.mateuszfrejlich.flashcards.controller;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -11,7 +14,7 @@ import pl.mateuszfrejlich.flashcards.service.CollectionsManager;
 import java.io.File;
 
 @Controller
-public class CreationController {
+public class CreationController implements OptionsController.DialogController {
     @Autowired
     private CollectionsManager collectionsManager;
     @FXML
@@ -24,6 +27,11 @@ public class CreationController {
     private Button btnPath;
     @FXML
     private CheckBox cbEmpty;
+
+    @Override
+    public void start() {
+        // nothing needed to do
+    }
 
     @FXML
     void handleOK(ActionEvent ignoredEvent) {

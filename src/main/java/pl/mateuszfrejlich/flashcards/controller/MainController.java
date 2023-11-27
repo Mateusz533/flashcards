@@ -1,4 +1,4 @@
-package pl.mateuszfrejlich.flashcards.controllers;
+package pl.mateuszfrejlich.flashcards.controller;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -15,11 +15,11 @@ import javafx.stage.WindowEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Controller;
-import pl.mateuszfrejlich.flashcards.model.CardCollection;
-import pl.mateuszfrejlich.flashcards.model.CardGroupChoice;
-import pl.mateuszfrejlich.flashcards.model.CardState;
 import pl.mateuszfrejlich.flashcards.model.SessionState;
 import pl.mateuszfrejlich.flashcards.service.CollectionsManager;
+import pl.mateuszfrejlich.flashcards.util.CardCollection;
+import pl.mateuszfrejlich.flashcards.util.CardGroupChoice;
+import pl.mateuszfrejlich.flashcards.util.CardState;
 
 @Controller
 public class MainController {
@@ -68,9 +68,7 @@ public class MainController {
             return;
 
         CardCollection activeCollection = sessionState.getActiveCollection();
-        if (activeCollection.getActiveCard() != null)
-            activeCollection.putBorrowedCard(false);
-
+        activeCollection.putCardBack(false);
         collectionsManager.updateCardsCollection(activeCollection);
     }
 
@@ -81,14 +79,13 @@ public class MainController {
 
         switch (sessionState.getCardState()) {
             case TO_DRAW -> {
-                if (sessionState.getActiveCollection().processNextCard())
+                if (sessionState.getActiveCollection().borrowNextCard() != null)
                     sessionState.setCardState(CardState.REVERSED);
             }
             case REVERSED -> sessionState.setCardState(CardState.FACE_UP);
             case FACE_UP, ABSENT -> {
                 // From that state it is changed by different action
             }
-            default -> throw new IllegalStateException("Unexpected value: " + sessionState.getCardState());
         }
     }
 
@@ -122,11 +119,11 @@ public class MainController {
         CardState cardState = sessionState.getCardState();
         switch (cardState) {
             case REVERSED -> {
-                setCardText(sessionState.getActiveCollection().getActiveCard().reverseText());
+                setCardText(sessionState.getActiveCollection().getBorrowedCard().reverseText());
                 setEnabledStates(false, false, true);
             }
             case FACE_UP -> {
-                setCardText(sessionState.getActiveCollection().getActiveCard().frontText());
+                setCardText(sessionState.getActiveCollection().getBorrowedCard().frontText());
                 setEnabledStates(false, true, false);
             }
             case TO_DRAW -> {
@@ -139,7 +136,6 @@ public class MainController {
                 setEnabledStates(false, false, false);
                 refreshGroupView();
             }
-            default -> throw new IllegalStateException("Unexpected value: " + cardState);
         }
     }
 
@@ -162,10 +158,9 @@ public class MainController {
                 btnFailed.setText("FAILED");
             }
             case ARCHIVED -> {
-                btnPassed.setText("PRESERVE");
-                btnFailed.setText("REMOVE");
+                btnPassed.setText("REMOVE");
+                btnFailed.setText("PRESERVE");
             }
-            default -> throw new IllegalStateException("Unexpected value: " + choice);
         }
     }
 
@@ -176,7 +171,7 @@ public class MainController {
 
     private void tryRedirectCard(boolean isPassed) {
         if (sessionState.getCardState() == CardState.FACE_UP) {
-            sessionState.getActiveCollection().putBorrowedCard(isPassed);
+            sessionState.getActiveCollection().putCardBack(isPassed);
             sessionState.setCardState(CardState.TO_DRAW);
         }
     }
