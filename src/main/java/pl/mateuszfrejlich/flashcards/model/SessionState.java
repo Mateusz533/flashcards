@@ -10,14 +10,20 @@ import pl.mateuszfrejlich.flashcards.util.CardState;
 
 @Component
 public class SessionState {
+    private final ActiveCollectionChangeEventPublisher activeCollectionChangeEventPublisher;
+    private final CardStateChangeEventPublisher cardStateChangeEventPublisher;
+    private final CardGroupChoiceChangeEventPublisher cardGroupChoiceChangeEventPublisher;
     private CardCollection activeCollection = null;
     private CardState cardState = CardState.ABSENT;
+
     @Autowired
-    private ActiveCollectionChangeEventPublisher activeCollectionChangeEventPublisher;
-    @Autowired
-    private CardStateChangeEventPublisher cardStateChangeEventPublisher;
-    @Autowired
-    private CardGroupChoiceChangeEventPublisher cardGroupChoiceChangeEventPublisher;
+    public SessionState(ActiveCollectionChangeEventPublisher activeCollectionChangeEventPublisher,
+                        CardStateChangeEventPublisher cardStateChangeEventPublisher,
+                        CardGroupChoiceChangeEventPublisher cardGroupChoiceChangeEventPublisher) {
+        this.activeCollectionChangeEventPublisher = activeCollectionChangeEventPublisher;
+        this.cardStateChangeEventPublisher = cardStateChangeEventPublisher;
+        this.cardGroupChoiceChangeEventPublisher = cardGroupChoiceChangeEventPublisher;
+    }
 
     public boolean hasActiveCollection() {
         return activeCollection != null;
