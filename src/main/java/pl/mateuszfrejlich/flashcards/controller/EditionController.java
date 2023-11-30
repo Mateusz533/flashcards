@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static pl.mateuszfrejlich.flashcards.util.CollectionEditor.*;
+
 @Controller
 public class EditionController implements OptionsController.DialogController {
     @Autowired
@@ -59,12 +61,21 @@ public class EditionController implements OptionsController.DialogController {
     @FXML
     void handleAddClicked(ActionEvent ignoredEvent) {
         Flashcard card = new Flashcard(tfFront.getText().trim(), tfReverse.getText().trim());
+
+        if (!card.isCorrect()) {
+            String msg1 = "Each side must contain between 1 and " + Flashcard.maxNumOfChars() + " characters!\n";
+            String msg2 = "Sing ' is forbidden, try to use \" instead.";
+            ErrorHandler.handleError(msg1 + msg2);
+            return;
+        }
+
         final boolean updated = editor.addCard(card);
 
-        if (updated)
+        if (updated) {
             cbxItem.getItems().add(formatCardText(card));
-        else
-            ErrorHandler.handleError("Invalid data");
+            cbxItem.getSelectionModel().selectLast();
+        } else
+            ErrorHandler.handleError("A card with the same front side already exists!");
     }
 
     @FXML
@@ -86,8 +97,13 @@ public class EditionController implements OptionsController.DialogController {
         else {
             editor.deleteCard(index);
             cbxItem.getItems().remove(index);
-            fillTextFields();
         }
+    }
+
+    @FXML
+    void handleShuffleClicked(ActionEvent ignoredEvent) {
+        editor.shuffleCards();
+        refreshWordList();
     }
 
     @FXML
@@ -96,15 +112,26 @@ public class EditionController implements OptionsController.DialogController {
     }
 
     @FXML
+    void handleSortClicked(ActionEvent ignoredEvent){
+        final ComparatorKey key = isSwapped ? ComparatorKey.REVERSE_TEXT : ComparatorKey.FRONT_TEXT;
+        editor.sortCards(key);
+        refreshWordList();
+    }
+
+    @FXML
     void handleSwapSidesClicked(ActionEvent ignoredEvent) {
+        final int index = cbxItem.getSelectionModel().getSelectedIndex();
         isSwapped = !isSwapped;
         refreshWordList();
+        cbxItem.getSelectionModel().select(index);
     }
 
     private void fillTextFields() {
         final int index = cbxItem.getSelectionModel().getSelectedIndex();
-        if (index == -1)
+        if (index == -1) {
+            clearTextFields();
             return;
+        }
 
         Flashcard card = editor.getCard(index);
         tfFront.setText(card.frontText());
@@ -130,15 +157,18 @@ public class EditionController implements OptionsController.DialogController {
         if (updated) {
             cbxItem.getItems().remove(index);
             cbxItem.getItems().add(index, formatCardText(card));
-            clearTextFields();
-        } else
-            ErrorHandler.handleError("Invalid data!");
+            cbxItem.getSelectionModel().select(index);
+        } else {
+            String msg1 = "Each side must contain between 1 and " + Flashcard.maxNumOfChars() + " characters!\n";
+            String msg2 = "Symbol ' is forbidden, try to use \" instead.";
+            ErrorHandler.handleError(msg1 + msg2);
+        }
     }
 
     private String formatCardText(Flashcard card) {
         if (isSwapped)
-            return card.reverseText() + '/' + card.frontText();
+            return card.reverseText() + " - " + card.frontText();
         else
-            return card.frontText() + '/' + card.reverseText();
+            return card.frontText() + " - " + card.reverseText();
     }
 }

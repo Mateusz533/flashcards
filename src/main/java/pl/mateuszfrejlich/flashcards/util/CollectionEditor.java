@@ -1,6 +1,8 @@
 package pl.mateuszfrejlich.flashcards.util;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -20,12 +22,15 @@ public class CollectionEditor {
         return items.get(index);
     }
 
-    public boolean addCard(Flashcard card) {
-        if (card.isCorrect()) {
-            items.add(card);
-            return true;
-        } else
+    public boolean addCard(Flashcard newCard) {
+        if (!newCard.isCorrect())
             return false;
+
+        if (items.stream().anyMatch(card -> card.frontText().equals(newCard.frontText())))
+            return false;
+
+        items.add(newCard);
+        return true;
     }
 
     public boolean updateCard(int index, Flashcard card) {
@@ -38,5 +43,21 @@ public class CollectionEditor {
 
     public void deleteCard(int index) {
         items.remove(index);
+    }
+
+    public void shuffleCards() {
+        Collections.shuffle(items);
+    }
+
+    public void sortCards(ComparatorKey key) {
+        switch (key) {
+            case FRONT_TEXT -> items.sort(Comparator.comparing(Flashcard::frontText));
+            case REVERSE_TEXT -> items.sort(Comparator.comparing(Flashcard::reverseText));
+        }
+    }
+
+    public enum ComparatorKey {
+        FRONT_TEXT,
+        REVERSE_TEXT,
     }
 }

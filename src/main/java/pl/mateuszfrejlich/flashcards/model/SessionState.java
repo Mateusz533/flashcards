@@ -1,5 +1,7 @@
 package pl.mateuszfrejlich.flashcards.model;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -9,28 +11,18 @@ import pl.mateuszfrejlich.flashcards.util.CardGroupChoice;
 import pl.mateuszfrejlich.flashcards.util.CardState;
 
 @Component
+@RequiredArgsConstructor
 public class SessionState {
     private final ActiveCollectionChangeEventPublisher activeCollectionChangeEventPublisher;
     private final CardStateChangeEventPublisher cardStateChangeEventPublisher;
     private final CardGroupChoiceChangeEventPublisher cardGroupChoiceChangeEventPublisher;
+    @Getter
     private CardCollection activeCollection = null;
+    @Getter
     private CardState cardState = CardState.ABSENT;
-
-    @Autowired
-    public SessionState(ActiveCollectionChangeEventPublisher activeCollectionChangeEventPublisher,
-                        CardStateChangeEventPublisher cardStateChangeEventPublisher,
-                        CardGroupChoiceChangeEventPublisher cardGroupChoiceChangeEventPublisher) {
-        this.activeCollectionChangeEventPublisher = activeCollectionChangeEventPublisher;
-        this.cardStateChangeEventPublisher = cardStateChangeEventPublisher;
-        this.cardGroupChoiceChangeEventPublisher = cardGroupChoiceChangeEventPublisher;
-    }
 
     public boolean hasActiveCollection() {
         return activeCollection != null;
-    }
-
-    public CardCollection getActiveCollection() {
-        return activeCollection;
     }
 
     public boolean setActiveCollection(CardCollection activeCollection) {
@@ -40,10 +32,6 @@ public class SessionState {
         this.activeCollection = activeCollection;
         activeCollectionChangeEventPublisher.publishEvent();
         return true;
-    }
-
-    public CardState getCardState() {
-        return cardState;
     }
 
     public void setCardState(CardState cardState) {

@@ -1,13 +1,17 @@
 package pl.mateuszfrejlich.flashcards.util;
 
+import lombok.Getter;
+
 import java.util.List;
 import java.util.stream.Stream;
 
 public class CardCollection implements CardGroup {
+    @Getter
     private final String name;
     private final CardBox cardBox;
     private final CardQueue archivedCards;
     private CardQueue preparedCards;
+    @Getter
     private CardGroupChoice cardGroupChoice = CardGroupChoice.UNSELECTED;
 
     public CardCollection(String name,
@@ -18,10 +22,6 @@ public class CardCollection implements CardGroup {
         this.preparedCards = new CardQueue(preparedCards);
         this.archivedCards = new CardQueue(archivedCards);
         cardBox = new CardBox(cardBoxSections);
-    }
-
-    public String getName() {
-        return name;
     }
 
     public List<Stream<Flashcard>> getCardBoxSections() {
@@ -42,10 +42,6 @@ public class CardCollection implements CardGroup {
             this.cardGroupChoice = cardGroupChoice;
 
         return noLentCard;
-    }
-
-    public CardGroupChoice getCardGroupChoice() {
-        return cardGroupChoice;
     }
 
     public int numberOfPreparedCards() {

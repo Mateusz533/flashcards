@@ -49,7 +49,8 @@ public class OptionsController {
 
     @FXML
     void handleNewClicked(ActionEvent ignoredEvent) {
-        openDialog(creationDialogResource, "Creation dialog", CreationController.class);
+        openDialog(creationDialogResource, CreationController.class,
+                "Creation dialog", 400, 200);
         cbxCollection.getItems().clear();
         refreshCollectionList();
     }
@@ -59,7 +60,8 @@ public class OptionsController {
         if (!sessionState.hasActiveCollection())
             ErrorHandler.handleError("No collection selected!");
         else
-            openDialog(editionDialogResource, "Edition dialog", EditionController.class);
+            openDialog(editionDialogResource, EditionController.class,
+                    "Edition dialog", 500, 300);
     }
 
     @FXML
@@ -140,11 +142,14 @@ public class OptionsController {
         }
     }
 
-    private void openDialog(Resource resource, String title, Class<? extends DialogController> aClass) {
+    private void openDialog(Resource resource, Class<? extends DialogController> aClass, String title,
+                            double minWidth, double minHeight) {
         try {
             Stage stage = new Stage();
             DialogController controller = aClass.cast(stageInitializer.initStage(stage, resource.getURL()));
             stage.setTitle(title);
+            stage.setMinWidth(minWidth);
+            stage.setMinHeight(minHeight);
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.initOwner(pnOptions.getScene().getWindow());
             controller.start();

@@ -9,8 +9,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-
-<AnchorPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.mateuszfrejlich.flashcards.controller.EditionController">
+<AnchorPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.mateuszfrejlich.flashcards.controller.EditionController">
    <children>
       <HBox layoutX="386.0" layoutY="286.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" spacing="14.0" AnchorPane.bottomAnchor="14.0" AnchorPane.rightAnchor="14.0">
          <children>
@@ -28,6 +27,7 @@
                            <children>
                               <Label maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Select item" />
                               <ComboBox fx:id="cbxItem" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="-Infinity" onAction="#handleItemSelected" prefWidth="150.0" HBox.hgrow="SOMETIMES" />
+                              <Button maxHeight="1.7976931348623157E308" maxWidth="100.0" minWidth="-Infinity" mnemonicParsing="false" onAction="#handleSortClicked" text="Sort" HBox.hgrow="SOMETIMES" />
                               <Button maxHeight="1.7976931348623157E308" maxWidth="100.0" minWidth="-Infinity" mnemonicParsing="false" onAction="#handleSwapSidesClicked" text="Swap sides" HBox.hgrow="SOMETIMES" />
                            </children>
                         </HBox>
@@ -48,6 +48,7 @@
                               <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="-Infinity" mnemonicParsing="false" onAction="#handleAddClicked" prefWidth="70.0" text="Add" HBox.hgrow="SOMETIMES" />
                               <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="-Infinity" mnemonicParsing="false" onAction="#handleUpdateClicked" prefWidth="70.0" text="Update" HBox.hgrow="SOMETIMES" />
                               <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="-Infinity" mnemonicParsing="false" onAction="#handleDeleteClicked" prefWidth="70.0" text="Delete" HBox.hgrow="SOMETIMES" />
+                              <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="-Infinity" mnemonicParsing="false" onAction="#handleShuffleClicked" prefWidth="70.0" text="Shuffle" HBox.hgrow="SOMETIMES" />
                            </children>
                         </HBox>
                      </children>

@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
@@ -18,14 +19,11 @@ import java.net.URL;
 import static pl.mateuszfrejlich.flashcards.MainApplication.StageReadyEvent;
 
 @Component
+@RequiredArgsConstructor
 public class StageInitializer implements ApplicationListener<StageReadyEvent> {
     private final ApplicationContext applicationContext;
     @Value("classpath:/main-view.fxml")
     private Resource resource;
-
-    public StageInitializer(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
-    }
 
     @Override
     public void onApplicationEvent(StageReadyEvent event) {
