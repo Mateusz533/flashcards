@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 @Service
 public class CollectionsManager {
     @Autowired
-    @Qualifier("mySQL")
+    @Qualifier("jpa")
     private DataBaseAdapter dbAdapter;
 
     public void setupDBConnection() throws SQLException {

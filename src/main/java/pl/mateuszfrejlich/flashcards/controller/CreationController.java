@@ -78,9 +78,13 @@ public class CreationController implements OptionsController.DialogController {
     }
 
     private boolean addNewCollection() {
-        if (tfPath.isDisable())
-            return collectionsManager.addNewCollection(tfName.getText().trim());
+        final String name = tfName.getText().trim();
+
+        if (collectionsManager.getCollectionNames().anyMatch(s -> s.equals(name)))
+            return false;
+        else if (tfPath.isDisable())
+            return collectionsManager.addNewCollection(name);
         else
-            return collectionsManager.addNewCollection(tfName.getText().trim(), tfPath.getText().trim());
+            return collectionsManager.addNewCollection(name, tfPath.getText().trim());
     }
 }
