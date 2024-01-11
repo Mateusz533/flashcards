@@ -11,6 +11,7 @@ class CardQueueTest {
 
     private static final Flashcard card1 = new Flashcard("a", "b");
     private static final Flashcard card2 = new Flashcard("c", "d");
+    private static final Flashcard card3 = new Flashcard("e", "f");
     private static CardQueue cardQueue;
 
     @BeforeEach
@@ -19,72 +20,125 @@ class CardQueueTest {
     }
 
     @Test
-    void getBorrowedCard() {
-        // given
-        assertNull(cardQueue.getBorrowedCard());
-        // when
-        cardQueue.borrowNextCard();
-        // then
-        assertNotNull(cardQueue.getBorrowedCard());
-        // when
-        cardQueue.putCardBack(true);
-        // then
-        assertNull(cardQueue.getBorrowedCard());
+    void constructorCardQueue_nullStream_throwException() {
+        assertThrows(NullPointerException.class, () -> new CardQueue(null));
     }
 
     @Test
-    void addNewCard() {
+    void getBorrowedCard_isNotBorrowed_getNull() {
         // given
-        Flashcard card = new Flashcard("e", "f");
+        assertNull(cardQueue.putCardBack(true));
         // when
-        assertTrue(cardQueue.addNewCard(card));
+        Flashcard receivedCard = cardQueue.getBorrowedCard();
         // then
+        assertNull(receivedCard);
+    }
+
+    @Test
+    void getBorrowedCard_isBorrowed_getProperly() {
+        // given
+        assertEquals(card1, cardQueue.borrowNextCard());
+        // when
+        Flashcard receivedCard = cardQueue.getBorrowedCard();
+        // then
+        assertEquals(card1, receivedCard);
+    }
+
+    @Test
+    void addNewCard_nonNullCard_addProperly() {
+        // given
+        assertEquals(2, cardQueue.size());
+        // when
+        assertTrue(cardQueue.addNewCard(card3));
+        // then
+        assertEquals(3, cardQueue.size());
         Flashcard lastCard = cardQueue.getCards().skip(2).toList().get(0);
-        assertEquals(card, lastCard);
-        // given-then
-        assertFalse(cardQueue.addNewCard(null));
+        assertEquals(card3, lastCard);
     }
 
     @Test
-    void borrowNextCard() {
+    void addNewCard_nullCard_ignoreAddition() {
+        // given
+        final int startSize = cardQueue.size();
+        // when
+        assertFalse(cardQueue.addNewCard(null));
+        // then
+        assertEquals(startSize, cardQueue.size());
+    }
+
+    @Test
+    void borrowNextCard_emptyQueue_ignoreAction() {
+        // given
+        CardQueue cardQueue = new CardQueue(Stream.of());
+
+        assertNull(cardQueue.getBorrowedCard());
+        // when
+        assertNull(cardQueue.borrowNextCard());
+        // then
+        assertNull(cardQueue.getBorrowedCard());
+    }
+
+    @Test
+    void borrowNextCard_cardAlreadyBorrowed_ignoreAction() {
+        // given
+        cardQueue.borrowNextCard();
+
+        assertEquals(card1, cardQueue.getBorrowedCard());
+        // when
+        assertNull(cardQueue.borrowNextCard());
+        // then
+        assertEquals(card1, cardQueue.getBorrowedCard());
+    }
+
+    @Test
+    void borrowNextCard_noCardAlreadyBorrowed_borrowProperly() {
+        // given
+        CardQueue cardQueue = new CardQueue(Stream.of(card1, card2));
+
+        assertNull(cardQueue.getBorrowedCard());
         // when
         assertEquals(card1, cardQueue.borrowNextCard());
         // then
         assertEquals(card1, cardQueue.getBorrowedCard());
-        assertNull(cardQueue.borrowNextCard());
-        // when
-        cardQueue.putCardBack(true);
-        // then
-        assertEquals(card2, cardQueue.borrowNextCard());
-        // when
-        cardQueue.putCardBack(true);
-        // then
-        assertEquals(0, cardQueue.size());
-        assertNull(cardQueue.borrowNextCard());
     }
 
     @Test
-    void putCardBack() {
+    void putCardBack_noCardAlreadyBorrowed_ignoreAction() {
         // given
         assertEquals(2, cardQueue.size());
         assertNull(cardQueue.getBorrowedCard());
-        // then
+        // when
         assertNull(cardQueue.putCardBack(true));
         assertNull(cardQueue.putCardBack(false));
-        assertEquals(2, cardQueue.size());
-        // given
-        assertEquals(2, cardQueue.size());
-        // when
-        cardQueue.borrowNextCard();
         // then
+        assertEquals(2, cardQueue.size());
+    }
+
+    @Test
+    void putCardBack_cardIsPassed_popThatCard() {
+        // given
+        cardQueue.borrowNextCard();
+
+        assertEquals(1, cardQueue.size());
+        assertEquals(card1, cardQueue.getBorrowedCard());
+        // when
         assertEquals(card1, cardQueue.putCardBack(true));
-        assertEquals(1, cardQueue.size());
-        // given
-        assertEquals(1, cardQueue.size());
-        // when
-        cardQueue.borrowNextCard();
         // then
-        assertNull(cardQueue.putCardBack(false));
         assertEquals(1, cardQueue.size());
+    }
+
+    @Test
+    void putCardBack_cardIsNotPassed_moveThatCardToEnd() {
+        // given
+        CardQueue cardQueue = new CardQueue(Stream.of(card1, card2));
+        cardQueue.borrowNextCard();
+
+        assertEquals(1, cardQueue.size());
+        assertEquals(card1, cardQueue.getBorrowedCard());
+        // when
+        assertNull(cardQueue.putCardBack(false));
+        // then
+        assertEquals(2, cardQueue.size());
+        assertEquals(card2, cardQueue.borrowNextCard());
     }
 }

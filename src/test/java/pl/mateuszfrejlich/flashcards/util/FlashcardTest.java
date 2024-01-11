@@ -17,18 +17,21 @@ class FlashcardTest {
     }
 
     @Test
-    void isCorrect() {
+    void isCorrect_rightValues() {
         assertTrue(isSymmetricallyCorrect(exampleCorrectWord));
         assertTrue(isSymmetricallyCorrect("a"));
         assertTrue(isSymmetricallyCorrect(" TeSt "));
         assertTrue(isSymmetricallyCorrect("\"a\""));
         assertTrue(isSymmetricallyCorrect("~!@#$%^&*()_+=-09887654321`\\|[]{};:<>,./?%"));
         assertTrue(isSymmetricallyCorrect("a".repeat(255)));
+    }
 
-        assertFalse(isSymmetricallyCorrect("a".repeat(256)));
+    @Test
+    void isCorrect_wrongValues() {
+        assertFalse(isSymmetricallyCorrect(""));
         assertFalse(isSymmetricallyCorrect("\n"));
         assertFalse(isSymmetricallyCorrect("     "));
         assertFalse(isSymmetricallyCorrect("'a'"));
-        assertFalse(isSymmetricallyCorrect(""));
+        assertFalse(isSymmetricallyCorrect("a".repeat(256)));
     }
 }

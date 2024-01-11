@@ -13,17 +13,23 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static pl.mateuszfrejlich.flashcards.model.SessionState.*;
 
 @ExtendWith(MockitoExtension.class)
 class SessionStateTest {
     private static final Flashcard card1 = new Flashcard("a", "b");
     @Mock
-    private SessionState.ActiveCollectionChangeEventPublisher activeCollectionChangeEventPublisher;
+    private ActiveCollectionChangeEventPublisher activeCollectionChangeEventPublisher;
     @Mock
-    private SessionState.CardStateChangeEventPublisher cardStateChangeEventPublisher;
+    private CardStateChangeEventPublisher cardStateChangeEventPublisher;
     @Mock
-    private SessionState.CardGroupChoiceChangeEventPublisher cardGroupChoiceChangeEventPublisher;
+    private CardGroupChoiceChangeEventPublisher cardGroupChoiceChangeEventPublisher;
     private SessionState state;
+
+    private static CardCollection newNonEmptyCollection() {
+        return new CardCollection("a", Stream.of(card1, card1), Stream.of(),
+                List.of(Stream.of(), Stream.of(), Stream.of(), Stream.of(), Stream.of()));
+    }
 
     @BeforeEach
     void init() {
@@ -32,54 +38,102 @@ class SessionStateTest {
     }
 
     @Test
-    void setActiveCollection() {
+    void setActiveCollection_noGroupSelected_setProperly() {
         // given
-        CardCollection anyCollection = new CardCollection("a", Stream.of(card1, card1), Stream.of(),
-                List.of(Stream.of(), Stream.of(), Stream.of(), Stream.of(), Stream.of()));
-        assertNull(state.getActiveCollection());
+        CardCollection anyCollection = newNonEmptyCollection();
+
         assertEquals(CardGroupChoice.UNSELECTED, state.getCardGroupChoice());
+        assertNull(state.getActiveCollection());
         // when
         assertTrue(state.setActiveCollection(anyCollection));
         // then
         assertEquals(anyCollection, state.getActiveCollection());
+    }
+
+    @Test
+    void setActiveCollection_cardAlreadyBorrowed_ignoreSetting() {
         // given
+        CardCollection anyStartCollection = newNonEmptyCollection();
+        CardCollection anyOtherCollection = newNonEmptyCollection();
         CardGroupChoice anyChoice = CardGroupChoice.PREPARED;
-        assertNotEquals(CardGroupChoice.UNSELECTED, anyChoice);
+        state.setActiveCollection(anyStartCollection);
+        state.setCardGroupChoice(anyChoice);
+        state.getActiveCollection().borrowNextCard();
+
+        assertEquals(anyStartCollection, state.getActiveCollection());
+        assertNotEquals(CardGroupChoice.UNSELECTED, state.getCardGroupChoice());
+        assertNotNull(state.getActiveCollection().getBorrowedCard());
         // when
-        assertTrue(state.setCardGroupChoice(anyChoice));
-        assertNotNull(anyCollection.borrowNextCard());
-        // then
         assertFalse(state.setActiveCollection(null));
-        assertFalse(state.setActiveCollection(anyCollection));
-        // when
-        anyCollection.putCardBack(false);
+        assertFalse(state.setActiveCollection(anyOtherCollection));
         // then
-        assertTrue(state.setActiveCollection(null));
-        assertEquals(CardGroupChoice.UNSELECTED, state.getCardGroupChoice());
-        assertTrue(state.setActiveCollection(anyCollection));
+        assertEquals(anyStartCollection, state.getActiveCollection());
+    }
+
+    @Test
+    void setActiveCollection_anyGroupSelectedWithCardPutBack_setProperly() {
+        // given
+        CardCollection anyStartCollection = newNonEmptyCollection();
+        CardCollection anyOtherCollection = newNonEmptyCollection();
+        CardGroupChoice anyChoice = CardGroupChoice.PREPARED;
+        state.setActiveCollection(anyStartCollection);
+        state.setCardGroupChoice(anyChoice);
+
+        assertEquals(anyStartCollection, state.getActiveCollection());
+        assertNotEquals(CardGroupChoice.UNSELECTED, state.getCardGroupChoice());
+        assertNull(state.getActiveCollection().getBorrowedCard());
+        // when
+        assertTrue(state.setActiveCollection(anyOtherCollection));
+        // then
+        assertEquals(anyOtherCollection, state.getActiveCollection());
         assertEquals(CardGroupChoice.UNSELECTED, state.getCardGroupChoice());
     }
 
     @Test
-    void setCardGroupChoice() {
+    void setCardGroupChoice_noActiveCollection_ignoreSetting() {
         // given
-        assertTrue(state.setActiveCollection(null));
+        state.setActiveCollection(null);
         CardGroupChoice anyChoice = CardGroupChoice.PREPARED;
-        // then
-        assertFalse(state.setCardGroupChoice(anyChoice));
-        // given
-        CardCollection anyCollection = new CardCollection("a", Stream.of(card1, card1), Stream.of(),
-                List.of(Stream.of(), Stream.of(), Stream.of(), Stream.of(), Stream.of()));
-        assertTrue(state.setActiveCollection(anyCollection));
+
+        assertNull(state.getActiveCollection());
+        assertNotEquals(CardGroupChoice.UNSELECTED, anyChoice);
         // when
-        assertNull(anyCollection.getBorrowedCard());
+        assertFalse(state.setCardGroupChoice(anyChoice));
         // then
+        assertEquals(CardGroupChoice.UNSELECTED, state.getCardGroupChoice());
+    }
+
+    @Test
+    void setCardGroupChoice_cardAlreadyBorrowed_ignoreSetting() {
+        // given
+        CardCollection noEmptyCollection = newNonEmptyCollection();
+        CardGroupChoice anyStartChoice = CardGroupChoice.PREPARED;
+        CardGroupChoice differentChoice = CardGroupChoice.PREPARED;
+        state.setActiveCollection(noEmptyCollection);
+        state.setCardGroupChoice(anyStartChoice);
+        noEmptyCollection.borrowNextCard();
+
+        assertEquals(noEmptyCollection, state.getActiveCollection());
+        assertEquals(anyStartChoice, state.getCardGroupChoice());
+        assertNotNull(state.getActiveCollection().getBorrowedCard());
+        // when
+        assertFalse(state.setCardGroupChoice(differentChoice));
+        // then
+        assertEquals(anyStartChoice, state.getCardGroupChoice());
+    }
+
+    @Test
+    void setCardGroupChoice_isActiveCollectionWithCardPutBack_setProperly() {
+        // given
+        CardCollection anyCollection = newNonEmptyCollection();
+        CardGroupChoice anyChoice = CardGroupChoice.PREPARED;
+        state.setActiveCollection(anyCollection);
+
+        assertEquals(anyCollection, state.getActiveCollection());
+        assertNull(state.getActiveCollection().getBorrowedCard());
+        // when
         assertTrue(state.setCardGroupChoice(anyChoice));
-        // given
-        assertNotNull(state.getActiveCollection());
-        // when
-        assertNotNull(anyCollection.borrowNextCard());
         // then
-        assertFalse(state.setCardGroupChoice(anyChoice));
+        assertEquals(anyChoice, state.getCardGroupChoice());
     }
 }
