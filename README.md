@@ -8,16 +8,12 @@ different type of knowledge, if only it can be presented as relatively short que
 
 - Java
 - Spring Boot
-- JavaFX
+- JavaFX (earlier Swing)
+- Hibernate/JPA (earlier JDBC)
+- Embedded H2 (earlier MySQL)
+- JUnit
 - Maven
 - Lombok
-- MySQL
-
-## Requirements
-
-- Installed JVM
-- Available connection with MySQL database schema. On default `localhost:3306/flashcard-collection` in case of unchanged
-  configuration properties.
 
 ## Presentation
 
@@ -27,6 +23,6 @@ View of the main window is shown below.
 
 ## Ideas for further development
 
-- Use Docker container to make project independent on external database
-- Suite flashcard representation and use JPA
+- Use Docker container
+- Configure CI/CD
 - Tidy up all styles using CSS classes and slightly beautify GUI
