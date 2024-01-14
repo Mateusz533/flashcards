@@ -82,6 +82,7 @@ public class JpaAdapter implements DataBaseAdapter {
     @Override
     public boolean deleteCollection(String name) {
         try {
+            flashcardsRepository.findById(name).orElseThrow();
             flashcardsRepository.deleteById(name);
             flashcardsRepository.flush();
             return true;
