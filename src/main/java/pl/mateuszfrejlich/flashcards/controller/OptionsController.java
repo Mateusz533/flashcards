@@ -16,7 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Controller;
-import pl.mateuszfrejlich.flashcards.StageInitializer;
+import pl.mateuszfrejlich.flashcards.service.StageInitializer;
 import pl.mateuszfrejlich.flashcards.model.SessionState;
 import pl.mateuszfrejlich.flashcards.service.CollectionsManager;
 import pl.mateuszfrejlich.flashcards.util.CardCollection;

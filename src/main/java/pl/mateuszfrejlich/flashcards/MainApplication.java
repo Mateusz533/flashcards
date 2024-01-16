@@ -26,7 +26,7 @@ public class MainApplication extends Application {
         applicationContext.publishEvent(new StageReadyEvent(stage));
     }
 
-    static class StageReadyEvent extends ApplicationEvent {
+    public static class StageReadyEvent extends ApplicationEvent {
         public StageReadyEvent(Stage stage) {
             super(stage);
         }

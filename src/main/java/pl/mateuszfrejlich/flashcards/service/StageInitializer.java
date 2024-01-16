@@ -1,4 +1,4 @@
-package pl.mateuszfrejlich.flashcards;
+package pl.mateuszfrejlich.flashcards.service;
 
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import pl.mateuszfrejlich.flashcards.controller.MainController;
 
 import java.io.IOException;
@@ -18,7 +18,7 @@ import java.net.URL;
 
 import static pl.mateuszfrejlich.flashcards.MainApplication.StageReadyEvent;
 
-@Component
+@Service
 @RequiredArgsConstructor
 public class StageInitializer implements ApplicationListener<StageReadyEvent> {
     private final ApplicationContext applicationContext;
